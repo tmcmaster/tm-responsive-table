@@ -1,17 +1,17 @@
-# template-web-component
+# tm-responsive-table
 
 This is a template for creating new web component repositories.
 
 ## Installation
 ```bash
-npm install @wonkytech/template-web-component
+npm install @wonkytech/tm-responsive-table
 ```
 
 ## Usage
 ```html
 <script type="module">
-  import '@wonkytech/template-web-component';
+  import '@wonkytech/tm-responsive-table';
 </script>
 
-<template-web-component></template-web-component>
+<tm-responsive-table></tm-responsive-table>
 ```

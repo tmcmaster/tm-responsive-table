@@ -1,10 +1,10 @@
 import {html, render} from "./web_modules/lit-html.js";
 
 let sites = {
-    'src': 'https://github.com/tmcmaster/template-web-component',
-    'pika': 'https://www.pika.dev/npm/@wonkytech/template-web-component',
-    'npm': 'https://www.npmjs.com/package/@wonkytech/template-web-component',
-    'docs': 'https://github.com/tmcmaster/template-web-component#readme'
+    'src': 'https://github.com/tmcmaster/tm-responsive-table',
+    'pika': 'https://www.pika.dev/npm/@wonkytech/tm-responsive-table',
+    'npm': 'https://www.npmjs.com/package/@wonkytech/tm-responsive-table',
+    'docs': 'https://github.com/tmcmaster/tm-responsive-table#readme'
 };
 
 render(html`
@@ -14,9 +14,9 @@ render(html`
           margin: 0;
         } 
     </style>
-    <tm-examples heading="template-web-component" .sites="${sites}">
+    <tm-examples heading="tm-responsive-table" .sites="${sites}">
         <section title="Example">
-            <template-web-component></template-web-component>
+            <tm-responsive-table></tm-responsive-table>
         </section>
     </tm-examples>
 `, document.querySelector('body'));

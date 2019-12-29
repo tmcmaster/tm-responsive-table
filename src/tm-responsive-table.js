@@ -1,7 +1,7 @@
 import {html} from 'lit-html';
 import {LitElement, css} from 'lit-element';
 
-window.customElements.define('template-web-component', class extends LitElement {
+window.customElements.define('tm-responsive-table', class extends LitElement {
 
     // noinspection JSUnusedGlobalSymbols
     static get properties() {

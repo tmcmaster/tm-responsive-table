@@ -42,7 +42,7 @@ render(html`
             <tm-responsive-table src="./data/test.json" selectable .data="${data}">
                 <template>
                     <th name="uid">UID</th>
-                    <th name="firstName" sort>First Name</th>
+                    <th name="firstName" sort="asc">First Name</th>
                     <th name="lastName" sort filter>Last Name</th>
                     <th name="email" sort filter>Email Address</th>
                 </template>

@@ -11,6 +11,8 @@ for i in `grep -rl 'template-web-component' *`;
 do 
     perl -spi -e 's/template-web-component/new-component-name/g' $i; 
 done
+git commit -am 'init component'
+git push
 npm run publish
 ```
 

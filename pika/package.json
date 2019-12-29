@@ -1,0 +1,10 @@
+{
+    "scripts": {
+        "web": "npx @pika/web --dest ../docs/web_modules",
+        "build": "npm update && npm run web"
+    },
+    "dependencies": {
+        "@wonkytech/tm-examples": "~0.1",
+        "@wonkytech/template-web-component": "~0.0"
+    }
+}

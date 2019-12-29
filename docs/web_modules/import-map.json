@@ -1,5 +1,6 @@
 {
   "imports": {
+    "@wonkytech/tm-examples": "./@wonkytech/tm-examples.js",
     "@wonkytech/tm-responsive-table": "./@wonkytech/tm-responsive-table.js"
   }
 }

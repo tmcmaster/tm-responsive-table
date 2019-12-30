@@ -8,6 +8,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         return {
             data: {type: Array},
             uid: {type: String},
+            src: {type: String},
             definition: {type: Array},
             selectable: {type: Boolean},
             filter: {type: Object},
@@ -22,17 +23,9 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         this.data = [];
         this.uid = 'uid';
         this.selectable = false;
-        this.filter = {
-            'firstName': 'Mrs'
-        };
-        this.sort = {
-            path: 'lastName',
-            direction: 'dsc'
-        };
-        this.selected = {
-            'user-001': true,
-            'user-005': true
-        };
+        this.filter = {};
+        this.sort = {};
+        this.selected = {};
     }
 
     firstUpdated(_changedProperties) {
@@ -40,30 +33,12 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         const slot = this.shadowRoot.getElementById('slot');
         const templates = Array.from(slot.assignedElements()).filter(element => element.tagName === 'TEMPLATE');
         const template = (templates.length > 0 ? templates[0] : document.createElement('template'));
-        this.definition = this.parseDefinition(template.content, this.selectable);
-    }
-
-    parseDefinition(definitionElement, selectable) {
-        console.log('DEFINITION ELEMENT: ', definitionElement);
-        const definitions = [];
-        // if (selectable) {
-        //     definitions.push({
-        //         path: 'selected',
-        //         title: 'Selected',
-        //         width: '3%',
-        //         sorted: false,
-        //         filter: false
-        //     });
-        // }
-
-        [
-            {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
-            {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false, sortDirection: 'asc'},
-            {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true, sortDirection: 'none', filterValue: ''},
-            {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true, sortDirection: 'none', filterValue: ''}
-        ].forEach(item => definitions.push(item));
-
-        return definitions;
+        if (this.src !== undefined && this.src.length > 0) {
+            fetch(this.src)
+                .then((data) => data.json())
+                .then((data) => this.data = data)
+                .catch((error) => console.error('There was an issue loading data', error));
+        }
     }
 
     static get styles() {
@@ -116,9 +91,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 text-align: left;
             }
 
-            @media
-            only screen and (max-width: 760px),
-            (min-device-width: 768px) and (max-device-width: 1024px) {
+            @media only screen and (max-width: 760px), (min-device-width: 768px) and (max-device-width: 1024px) {
                 
                 table, thead, tbody, th, td, tr {
                     display: block;
@@ -188,17 +161,13 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     // noinspection JSUnusedGlobalSymbols
     render() {
         const {selectable, definition, data, filter, sort} = this;
-        const offset = (selectable ? 2 : 1);
-        const sortBy = (Object.keys(sort).length === 0 ? undefined : Object.keys(sort)[0]);
-        const sortDirection = (sortBy === undefined ? undefined : sort[sortBy]);
-        console.log('SORT - ', sortBy, sortDirection);
         return html`
             <slot id="slot"></slot>
             
             <style>
                 @media only screen and (max-width: 760px), (min-device-width: 768px) and (max-device-width: 1024px) {
                     ${definition.map((def,index) => html`
-                        td:nth-of-type(${index + offset}):before { content: "${def.title}"; }
+                        td:nth-of-type(${index + (selectable ? 2 : 1)}):before { content: "${def.title}"; }
                     `)}
                 }
             </style>
@@ -228,7 +197,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                         </thead>
                         <tbody>
                             ${data
-                                .filter((d) => Object.keys(filter).length === 0 || Object.keys(filter).filter(p => filter[p].length > 0).map((p) => d[p].indexOf(filter[p]) > -1).filter(s => s === true).length > 0)
+                                .filter((d) => Object.keys(filter).length === 0 || Object.keys(filter).map((p) => d[p].indexOf(filter[p]) > -1).filter(s => s === true).length === Object.keys(filter).length)
                                 .sort((a,b) => (sort.path === undefined ? 0 : (sort.direction === 'asc' ? 1 : -1) * a[sort.path].localeCompare(b[sort.path])))
                                 .map(d => html`
                                     <tr>

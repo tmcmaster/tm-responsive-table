@@ -7,9 +7,12 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     static get properties() {
         return {
             data: {type: Array},
-            displayData: {type: Array},
+            uid: {type: String},
             definition: {type: Array},
-            selectable: {type: Boolean}
+            selectable: {type: Boolean},
+            filter: {type: Object},
+            sort: {type: Object},
+            selected: {type: Object}
         }
     }
 
@@ -17,8 +20,19 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         super();
         this.definition = [];
         this.data = [];
+        this.uid = 'uid';
         this.selectable = false;
-        this.displayData = this.data;
+        this.filter = {
+            'firstName': 'Mrs'
+        };
+        this.sort = {
+            path: 'lastName',
+            direction: 'dsc'
+        };
+        this.selected = {
+            'user-001': true,
+            'user-005': true
+        };
     }
 
     firstUpdated(_changedProperties) {
@@ -27,21 +41,20 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         const templates = Array.from(slot.assignedElements()).filter(element => element.tagName === 'TEMPLATE');
         const template = (templates.length > 0 ? templates[0] : document.createElement('template'));
         this.definition = this.parseDefinition(template.content, this.selectable);
-        this.displayData = this.data;
     }
 
     parseDefinition(definitionElement, selectable) {
         console.log('DEFINITION ELEMENT: ', definitionElement);
         const definitions = [];
-        if (selectable) {
-            definitions.push({
-                path: 'selected',
-                title: 'Selected',
-                width: '3%',
-                sorted: false,
-                filter: false
-            });
-        }
+        // if (selectable) {
+        //     definitions.push({
+        //         path: 'selected',
+        //         title: 'Selected',
+        //         width: '3%',
+        //         sorted: false,
+        //         filter: false
+        //     });
+        // }
 
         [
             {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
@@ -106,7 +119,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             @media
             only screen and (max-width: 760px),
             (min-device-width: 768px) and (max-device-width: 1024px) {
-
+                
                 table, thead, tbody, th, td, tr {
                     display: block;
                 }
@@ -174,8 +187,11 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
 
     // noinspection JSUnusedGlobalSymbols
     render() {
-        const {selectable, definition, displayData} = this;
+        const {selectable, definition, data, filter, sort} = this;
         const offset = (selectable ? 2 : 1);
+        const sortBy = (Object.keys(sort).length === 0 ? undefined : Object.keys(sort)[0]);
+        const sortDirection = (sortBy === undefined ? undefined : sort[sortBy]);
+        console.log('SORT - ', sortBy, sortDirection);
         return html`
             <slot id="slot"></slot>
             
@@ -192,6 +208,9 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     <table>
                         <thead>
                             <tr>
+                                ${(this.selectable ? html`
+                                    <th class="selected" width="5%"><input type="checkbox" .checked="${Object.keys(this.selected).length > 0}"/></th>
+                                ` : html``)}
                                 ${this.definition.map(def => this.generateTitle(def))}
                             </tr>
                         </thead>
@@ -201,21 +220,24 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     <table id="table">
                         <thead>
                             <tr>
-                                ${this.definition.map(def => html`
-                                    <td width="${def.width}"></td>
-                                `)}
+                                ${(this.selectable ? html`
+                                    <td class="selected" width="5%"></td>
+                                ` : html``)}
+                                ${this.definition.map(def => html`<td width="${def.width}"></td>`)}
                             </tr>
                         </thead>
                         <tbody>
-                            ${displayData.map(r => html`
-                                <tr>
-                                    ${definition.map(def => (def.path === 'selected' ? html`
-                                        <td width="${def.width}"><input type="checkbox" .checked="${r.selected}"/></td>
-                                    ` : html`
-                                        <td>${r[def.path]}</td>
-                                    `))}
-                                </tr>
-                            `)}
+                            ${data
+                                .filter((d) => Object.keys(filter).length === 0 || Object.keys(filter).filter(p => filter[p].length > 0).map((p) => d[p].indexOf(filter[p]) > -1).filter(s => s === true).length > 0)
+                                .sort((a,b) => (sort.path === undefined ? 0 : (sort.direction === 'asc' ? 1 : -1) * a[sort.path].localeCompare(b[sort.path])))
+                                .map(d => html`
+                                    <tr>
+                                        ${(this.selectable ? html`
+                                            <td><input type="checkbox" .checked="${d['uid'] in this.selected}"/></td>
+                                        ` : html``)}
+                                        ${definition.map(def => html`<td>${d[def.path]}</td>`)}
+                                    </tr>
+                                `)}
                         </tbody>
                     </table>
                 </main>            
@@ -224,18 +246,23 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     }
 
     generateTitle(def) {
+        const {sort, filter} = this;
+
         return (def.path === 'selected' ? html`
             <th class="selected" width="${def.width}"><input type="checkbox" .checked="${this.isAnyDataSelected()}"/></th>
         ` : html`
-            <th class="title" 
-                width="${def.width}" @click="${() => this.sortBy(def)}">
+            <th class="title" width="${def.width}" @click="${() => this.sortChanged(def.path, def.sort)}">
                     ${(def.filter ? html`
                         <span class="label">${def.title}</span>
                     ` : html`
-                        <input style="width:${(def.sort === true ? 80 : 90)}%" placeholder="${def.title}" @click="${(e) => e.stopPropagation()}"/>
+                        <input style="width:${(def.sort === true ? 80 : 90)}%" 
+                                value="${def.path in filter ? filter[def.path] : ''}"
+                                placeholder="${def.title}" 
+                                @click="${(e) => e.stopPropagation()}"
+                                @keydown="${debounce((e) => this.filterChanged(def.path, e), 500)}"/>
                     `)}
                     ${(def.sort ? html`
-                        <div class="arrow-${def.sortDirection}"></div>
+                        <div class="arrow-${(def.path === sort.path ? sort.direction : 'none')}"></div>
                     ` : html``)}
              </th>
         `);
@@ -245,38 +272,45 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         return this.data.map(r => r.selected).filter(s => s).length > 0
     }
 
-    getCurrentData(data) {
-        const sortDefinitions = this.definition.filter(d => d.sort === true && d.sortDirection !== 'none');
-        const sortDef = (sortDefinitions.length > 0 ? sortDefinitions[0] : undefined);
-        const filterDefinitions = this.definition.filter(d => d.filter === true && d.filterValue !== undefined && d.filterValue.length > 0);
-
-        let result = data;
-        if (filterDefinitions.length > 0) {
-            result = result.filter((row) => filterDefinitions.map(def => row[def.path].indexOf(def.filterValue) > -1).filter(v => v === true).length > 0);
+    filterChanged(path, e) {
+        const {filter} = this;
+        const value = e.path[0].value;
+        const newFilter = {...filter};
+        if (value === undefined || value.length === 0) {
+            delete newFilter[path];
+        } else {
+            newFilter[path] = value;
         }
-        if (sortDef !== undefined) {
-            result = result.sort((a,b) => (sortDef.sortDirection === 'asc' ? 1 : -1) * a[sortDef.path].localeCompare(b[sortDef.path]));
-        }
-
-        return result;
+        this.filter = newFilter;
+        console.log(`NEW FILTER: Path(${path}), Value(${value})`, this.filter);
     }
-    sortBy(def) {
-        if (def.sort === true) {
-            const newSortDirection = (def.sortDirection === 'asc' ? 'dsc' : (def.sortDirection === 'dsc' ? 'none' : 'asc'));
 
-            this.definition.forEach(d => d.sortDirection = (d.path === def.path ? newSortDirection : 'none'));
+    sortChanged(path, active) {
+        if (!active) return;
+        const {sort} = this;
 
-            this.displayData = this.getCurrentData(this.data);
-
-            // console.log(`Sort by ${def.path}, direction is ${def.sortDirection}`);
-            // if (def.sortDirection !== 'none') {
-            //     this.data = this.data.sort((a, b) => (def.sortDirection === 'asc' ? 1 : -1) * a[def.path].localeCompare(b[def.path]));
-            //     console.log('SORTED DATA: ', this.data);
-            // }
-
-            this.requestUpdate().then(() => {
-                console.log('Data needs to be resorted.');
-            });
+        if (sort.path === undefined) {
+            this.sort = {path:path,direction: 'asc'}
+        } else if (sort.path === path) {
+            if (sort.direction === 'asc') {
+                this.sort = {path:path,direction: 'dsc'}
+            } else {
+                this.sort = {}
+            }
+        } else {
+            this.sort = {path:path,direction: 'asc'}
         }
+
+        console.log(`NEW SORT: Path(${path}), Active(${active})`, this.sort);
     }
 });
+
+function debounce(func, delay) {
+    let timer;
+    return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timer);
+        timer=setTimeout(() => func.apply(context, args), delay);
+    }
+}

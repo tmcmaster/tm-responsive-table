@@ -39,6 +39,12 @@ render(html`
           padding: 0;
           margin: 0;
         } 
+        
+        tm-responsive-table {
+            width: 100%;
+            height: 250px;
+            --tm-responsive-table-header-background: black;
+        }
     </style>
     <tm-examples heading="tm-responsive-table" .sites="${sites}">
         <section title="Pass in Data">

@@ -35,12 +35,14 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     super();
     this.definition = [];
     this.data = [];
+    this.src = undefined;
     this.uid = 'uid';
     this.selectable = false;
     this.filter = {};
     this.sort = {};
     this.selected = {};
-  }
+  } // noinspection JSUnusedGlobalSymbols
+
 
   firstUpdated(_changedProperties) {
     super.firstUpdated(_changedProperties);
@@ -51,6 +53,8 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     if (this.src !== undefined && this.src.length > 0) {
       fetch(this.src).then(data => data.json()).then(data => this.data = data).catch(error => console.error('There was an issue loading data', error));
     }
+
+    this.addEventListener('tm-selection-changed', e => console.log('Selected Data', this.getSelected()));
   }
 
   static get styles() {
@@ -58,9 +62,14 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     return css`
             :host {
                 display: inline-block;
-                width: 800px;
-                height: 200px;
+                /*noinspection CssUnresolvedCustomProperty*/
+                --row-odd-background: var(--tm-responsive-table-row-odd-background, #eee);
+                /*noinspection CssUnresolvedCustomProperty*/
+                --header-background: var(--tm-responsive-table-header-background, #333);
+                /*noinspection CssUnresolvedCustomProperty*/
+                --row-border: var(--tm-responsive-table-row-border, #ccc);
             }
+
             article {
                 display: flex;
                 flex-direction: column;
@@ -68,43 +77,52 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 height: 100%;
                 width: 100%;
             }
-            
+
             header {
                 flex: fit-content;
             }
-            
+
             main {
                 display: inline-block;
                 flex: 1;
                 box-sizing: border-box;
                 overflow: scroll;
             }
-            
+
             h2 {
                 color: gray;
             }
-            
+
             table {
                 border-collapse: collapse;
                 width: 100%;
             }
-            
+
             tbody > tr:nth-of-type(odd) {
-                background: #eee;
+                /*noinspection CssUnresolvedCustomProperty*/
+                background: var(--row-odd-background);
             }
+            
+            tbody > tr.selected {
+                background: lightcyan;
+            }
+
             th {
-                background: #333;
+                /*noinspection CssUnresolvedCustomProperty*/
+                background: var(--header-background);
                 color: white;
                 font-weight: bold;
             }
+
             td, th {
                 padding: 6px;
-                border: 1px solid #ccc;
+                /*noinspection CssUnresolvedCustomProperty*/
+                border: 1px solid var(--row-border);
                 text-align: left;
             }
 
             @media only screen and (max-width: 760px), (min-device-width: 768px) and (max-device-width: 1024px) {
-                
+
                 table, thead, tbody, th, td, tr {
                     display: block;
                 }
@@ -135,7 +153,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     white-space: nowrap;
                 }
             }
-            
+
             /** Tricky use of checkbox **/
             /* Toggled State */
             /*input[type=checkbox]:checked ~ div {*/
@@ -143,8 +161,9 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             /*}*/
 
             th.title {
-                
+
             }
+
             .arrow-asc, .arrow-dsc {
                 clear: both;
                 float: right;
@@ -158,12 +177,15 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 transform: rotate(45deg);
                 transition: border-width 150ms ease-in-out;
             }
+
             .arrow-asc {
                 transform: rotate(225deg);
             }
+
             .arrow-dsc {
                 transform: rotate(45deg);
             }
+
             .arrow-none {
                 display: none;
             }
@@ -174,6 +196,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
   render() {
     const {
       selectable,
+      selected,
       definition,
       data,
       filter,
@@ -195,10 +218,12 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     <table>
                         <thead>
                             <tr>
-                                ${this.selectable ? html`
-                                    <th class="selected" width="5%"><input type="checkbox" .checked="${Object.keys(this.selected).length > 0}"/></th>
+                                ${selectable ? html`
+                                    <th class="selected" width="5%" @click="${e => this.masterSelectSelected(e)}">
+                                        <input type="checkbox" .checked="${Object.keys(selected).length > 0}"/>
+                                    </th>
                                 ` : html``}
-                                ${this.definition.map(def => this.generateTitle(def))}
+                                ${definition.map(def => this.generateTitle(def))}
                             </tr>
                         </thead>
                     </table>
@@ -207,17 +232,17 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     <table id="table">
                         <thead>
                             <tr>
-                                ${this.selectable ? html`
+                                ${selectable ? html`
                                     <td class="selected" width="5%"></td>
                                 ` : html``}
-                                ${this.definition.map(def => html`<td width="${def.width}"></td>`)}
+                                ${definition.map(def => html`<td width="${def.width}"></td>`)}
                             </tr>
                         </thead>
                         <tbody>
                             ${data.filter(d => Object.keys(filter).length === 0 || Object.keys(filter).map(p => d[p].indexOf(filter[p]) > -1).filter(s => s === true).length === Object.keys(filter).length).sort((a, b) => sort.path === undefined ? 0 : (sort.direction === 'asc' ? 1 : -1) * a[sort.path].localeCompare(b[sort.path])).map(d => html`
-                                    <tr>
-                                        ${this.selectable ? html`
-                                            <td><input type="checkbox" .checked="${d['uid'] in this.selected}"/></td>
+                                    <tr @click="${e => this.rowSelected(d)}" class="${d['uid'] in selected ? 'selected' : ''}">
+                                        ${selectable ? html`
+                                            <td><input type="checkbox" .checked="${d['uid'] in selected}"/></td>
                                         ` : html``}
                                         ${definition.map(def => html`<td>${d[def.path]}</td>`)}
                                     </tr>
@@ -252,6 +277,48 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     ` : html``}
              </th>
         `;
+  }
+
+  getSelected() {
+    return Object.values(this.selected);
+  }
+
+  rowSelected(d) {
+    const {
+      uid,
+      selected
+    } = this;
+    const rowId = d[uid]; // TODO: need to investigate duplication of data issues
+
+    const newSelected = { ...selected
+    };
+
+    if (rowId in selected) {
+      delete newSelected[rowId];
+    } else {
+      newSelected[rowId] = d;
+    }
+
+    this.selected = newSelected;
+    this.dispatchEvent(new CustomEvent('tm-selection-changed'));
+  }
+
+  masterSelectSelected(e) {
+    const {
+      uid,
+      selected,
+      data
+    } = this;
+
+    if (Object.keys(selected).length > 0) {
+      this.selected = {};
+    } else {
+      const newSelected = {};
+      data.forEach(d => newSelected[d[uid]] = d);
+      this.selected = newSelected;
+    }
+
+    this.dispatchEvent(new CustomEvent('tm-selection-changed'));
   }
 
   isAnyDataSelected() {

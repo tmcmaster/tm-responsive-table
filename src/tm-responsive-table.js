@@ -114,12 +114,6 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     display: block;
                 }
 
-                thead tr {
-                    position: absolute;
-                    top: -9999px;
-                    left: -9999px;
-                }
-
                 tr {
                     border: 1px solid #ccc;
                 }
@@ -139,13 +133,21 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     padding-right: 10px;
                     white-space: nowrap;
                 }
-            }
 
-            /** Tricky use of checkbox **/
-            /* Toggled State */
-            /*input[type=checkbox]:checked ~ div {*/
-            /*    background: red;*/
-            /*}*/
+                header > table > thead > tr {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: space-around;
+                    flex-wrap: wrap;
+                    background: var(--header-background);
+                }
+                header > table > thead > tr > th {
+                    margin:2px;
+                }
+                main > table > thead {
+                    display: none;
+                }
+            }
 
             th.title {
 

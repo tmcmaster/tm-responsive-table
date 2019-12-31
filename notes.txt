@@ -1,0 +1,4 @@
+/** Tricky use of checkbox - Toggled State **/
+input[type=checkbox]:checked ~ div {
+    background: red;
+}

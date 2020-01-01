@@ -5,6 +5,6 @@
     },
     "dependencies": {
         "@wonkytech/tm-examples": "~0.1",
-        "@wonkytech/tm-responsive-table": "^0.1.2"
+        "@wonkytech/tm-responsive-table": "^0.1.3"
     }
 }

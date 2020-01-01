@@ -33,6 +33,12 @@ window.customElements.define('tm-table-header', class extends LitElement {
     this.sort = false;
     this.sortValue = 'none';
     this.filterValue = '';
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  firstUpdated(_changedProperties) {
+    super.firstUpdated(_changedProperties);
+    this.input = this.shadowRoot.getElementById('input');
   }
 
   static get styles() {
@@ -96,12 +102,12 @@ window.customElements.define('tm-table-header', class extends LitElement {
       sortValue,
       filterValue,
       path
-    } = this;
-    //console.log(`TM-TABLE-HEADING: render: path(${path}) sort(${sortValue}) filter(${filterValue})`);
+    } = this; //console.log(`TM-TABLE-HEADING: render: path(${path}) sort(${sortValue}) filter(${filterValue})`);
+
     return html`
             <div class="main"  @click="${() => this.sortChanged()}">
                 ${filter === true ? html`
-                    <input class="filter"
+                    <input id="input" class="filter"
                             style="width:${sort === true ? 80 : 90}%"
                             value="${filterValue}"
                             placeholder="${title}" 
@@ -121,9 +127,9 @@ window.customElements.define('tm-table-header', class extends LitElement {
     const {
       path
     } = this;
-    const value = e.path[0].value;
-    this.filterValue = value;
-    //console.log(`NEW FILTER: Path(${path}), Value(${value})`, this.filterValue);
+    const value = this.input.value;
+    this.filterValue = value; //console.log(`NEW FILTER: Path(${path}), Value(${value})`, this.filterValue);
+
     this.dispatchEvent(new CustomEvent('filter-changed', {
       detail: {
         path: path,
@@ -144,8 +150,8 @@ window.customElements.define('tm-table-header', class extends LitElement {
         path,
         sortValue
       } = this;
-      this.sortValue = sortValue === 'none' ? 'asc' : sortValue === 'asc' ? 'dsc' : 'none';
-      //console.log(`NEW SORT: Path(${path}), Value(${sortValue})`, this.sortValue);
+      this.sortValue = sortValue === 'none' ? 'asc' : sortValue === 'asc' ? 'dsc' : 'none'; //console.log(`NEW SORT: Path(${path}), Value(${sortValue})`, this.sortValue);
+
       this.dispatchEvent(new CustomEvent('sort-changed', {
         detail: {
           path: path,
@@ -285,8 +291,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 text-align: left;
             }
 
-            @media only screen and (max-width: 760px), 
-                        (min-device-width: 768px) and (max-device-width: var(--max-device-width)) {
+            @media only screen and (max-width: 600px) {
 
                 thead, tbody, th, td, tr {
                     display: block;
@@ -343,7 +348,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     return html`
 
             <style>
-                @media only screen and (max-width: 760px), (min-device-width: 768px) and (max-device-width: 1024px) {
+                @media only screen and (max-width: 600px) {
                     ${definition.map((def, index) => html`
                         td:nth-of-type(${index + (selectable ? 2 : 1)}):before { content: "${def.title}"; }
                     `)}

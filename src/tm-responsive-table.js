@@ -106,8 +106,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 text-align: left;
             }
 
-            @media only screen and (max-width: 760px), 
-                        (min-device-width: 768px) and (max-device-width: var(--max-device-width)) {
+            @media only screen and (max-width: 600px) {
 
                 thead, tbody, th, td, tr {
                     display: block;
@@ -158,7 +157,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         return html`
 
             <style>
-                @media only screen and (max-width: 760px), (min-device-width: 768px) and (max-device-width: 1024px) {
+                @media only screen and (max-width: 600px) {
                     ${definition.map((def,index) => html`
                         td:nth-of-type(${index + (selectable ? 2 : 1)}):before { content: "${def.title}"; }
                     `)}

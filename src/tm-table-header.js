@@ -25,6 +25,12 @@ window.customElements.define('tm-table-header', class extends LitElement {
         this.filterValue = '';
     }
 
+    // noinspection JSUnusedGlobalSymbols
+    firstUpdated(_changedProperties) {
+        super.firstUpdated(_changedProperties);
+        this.input = this.shadowRoot.getElementById('input');
+    }
+
     static get styles() {
         // language=CSS
         return css`
@@ -80,11 +86,11 @@ window.customElements.define('tm-table-header', class extends LitElement {
     // noinspection JSUnusedGlobalSymbols
     render() {
         const {title, filter, sort, sortValue, filterValue, path} = this;
-        console.log(`TM-TABLE-HEADING: render: path(${path}) sort(${sortValue}) filter(${filterValue})`);
+        //console.log(`TM-TABLE-HEADING: render: path(${path}) sort(${sortValue}) filter(${filterValue})`);
         return html`
             <div class="main"  @click="${() => this.sortChanged()}">
                 ${(filter === true ? html`
-                    <input class="filter"
+                    <input id="input" class="filter"
                             style="width:${(sort === true ? 80 : 90)}%"
                             value="${filterValue}"
                             placeholder="${title}" 
@@ -102,9 +108,9 @@ window.customElements.define('tm-table-header', class extends LitElement {
 
     filterChanged(e) {
         const {path} = this;
-        const value = e.path[0].value;
+        const value = this.input.value;
         this.filterValue = value;
-        console.log(`NEW FILTER: Path(${path}), Value(${value})`, this.filterValue);
+        //console.log(`NEW FILTER: Path(${path}), Value(${value})`, this.filterValue);
         this.dispatchEvent(new CustomEvent('filter-changed', {
             detail: {path: path, value: this.filterValue},
             bubbles: true, composed: true
@@ -116,7 +122,7 @@ window.customElements.define('tm-table-header', class extends LitElement {
         if (sort) {
             const {path, sortValue} = this;
             this.sortValue = (sortValue === 'none' ? 'asc' : (sortValue === 'asc' ? 'dsc' : 'none'));
-            console.log(`NEW SORT: Path(${path}), Value(${sortValue})`, this.sortValue);
+            //console.log(`NEW SORT: Path(${path}), Value(${sortValue})`, this.sortValue);
             this.dispatchEvent(new CustomEvent('sort-changed', {
                 detail: {path: path, value: this.sortValue},
                 bubbles: true, composed: true

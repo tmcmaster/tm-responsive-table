@@ -7,31 +7,25 @@ let sites = {
     'docs': 'https://github.com/tmcmaster/tm-responsive-table#readme'
 };
 
-const data1 = [
-    {uid: 'user-001', firstName: 'Mrs', lastName: 'One', email: 'one@test.com'},
-    {uid: 'user-002', firstName: 'Mr', lastName: 'Two', email: 'two@test.com', selected: true},
-    {uid: 'user-003', firstName: 'Mrs', lastName: 'Three', email: 'three@test.com', selected: true},
-    {uid: 'user-004', firstName: 'Mr', lastName: 'Four', email: 'four@test.com', selected: true},
-    {uid: 'user-005', firstName: 'Miss', lastName: 'Five', email: 'five@test.com'},
-    {uid: 'user-006', firstName: 'Miss', lastName: 'Six', email: 'six@test.com'},
-    {uid: 'user-007', firstName: 'Mrs', lastName: 'Seven', email: 'seven@test.com'},
-    {uid: 'user-008', firstName: 'Mr', lastName: 'Eight', email: 'eight@test.com'}
-];
-
-const definition1 = [
+const fileDefinition = [
     {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
     {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false},
     {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true,},
     {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true}
 ];
 
-const definition2 = [
-    {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
-    {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false},
-    {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true,},
-    {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true}
-];
+const NUMBER_OF_TEST_ROWS = 50;
+const TEST_FIELD_NAMES = ['uid','a','b','c','d','e','f','g','h'];
 
+const definition = TEST_FIELD_NAMES.map(k => {
+    return {path: k, title: k.toUpperCase(), width: '10%', sort: true, filter: true}
+});
+
+const data = Array(NUMBER_OF_TEST_ROWS).fill(0).map((n,i) => {
+    const row = {};
+    definition.map(row => row.path).forEach(p => row[p] = p + '-' + i);
+    return row;
+});
 
 render(html`
     <style>
@@ -39,45 +33,75 @@ render(html`
           padding: 0;
           margin: 0;
         } 
-        
-        tm-responsive-table {
-            width: 100%;
-            height: 250px;
-            --tm-responsive-table-header-background: black;
-        }
     </style>
     <tm-examples heading="tm-responsive-table" .sites="${sites}">
-        <section title="Pass in Data">
-            <script>
-                const data1 = [
-                    {uid: 'user-001', firstName: 'Mrs', lastName: 'One', email: 'one@test.com'},
-                    {uid: 'user-002', firstName: 'Mr', lastName: 'Two', email: 'two@test.com'},
-                    {uid: 'user-003', firstName: 'Mrs', lastName: 'Three', email: 'three@test.com'},
-                    {uid: 'user-004', firstName: 'Mr', lastName: 'Four', email: 'four@test.com'},
-                    {uid: 'user-005', firstName: 'Miss', lastName: 'Five', email: 'five@test.com'},
-                    {uid: 'user-006', firstName: 'Miss', lastName: 'Six', email: 'six@test.com'},
-                    {uid: 'user-007', firstName: 'Mrs', lastName: 'Seven', email: 'seven@test.com'},
-                    {uid: 'user-008', firstName: 'Mr', lastName: 'Eight', email: 'eight@test.com'}
-                ];
-                const definition1 = [
-                    {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
-                    {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false},
-                    {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true,},
-                    {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true}
-                ];
-            </script>
-            <tm-responsive-table  .data="${data1}" .definition="${definition1}" selectable></tm-responsive-table>
+        <section title="Generated Data">
+            <style>
+                 tm-responsive-table.a {
+                    width: 100%;
+                    height: 250px;
+                }
+            </style>
+            <tm-responsive-table class="a" .data="${data}" .definition="${definition}" selectable></tm-responsive-table>
         </section>
         <section title="Data From File">
+            <style>
+                 tm-responsive-table.b {
+                    width: 100%;
+                    height: 250px;
+                }
+            </style>
             <script>
-                const definition2 = [
+                const fileDefinition = [
                     {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
                     {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false},
                     {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true,},
                     {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true}
                 ];
             </script>
-            <tm-responsive-table src="./data/test.json" .definition="${definition2}" selectable></tm-responsive-table>
+            <tm-responsive-table class="b" src="./data/test.json" .definition="${fileDefinition}" selectable
+                    @selection-changed="${(e) => console.log('Selection changed.', e.path[0].getSelected())}"></tm-responsive-table>
         </section>
+        <section title="Fixed Container">
+             <style>
+                div.cc {
+                    max-width: 800px;
+                    max-height: 50vh;
+                    display: flex;
+                    flex-direction: column;
+                }
+                tm-responsive-table.c {
+                    max-width: 100%;
+                    max-height: 100%;
+                }
+            </style>
+            <div class="cc">
+                <tm-responsive-table class="c" .data="${data}" .definition="${definition}" selectable></tm-responsive-table>
+            </div>
+        </section>
+        <section title="Expandable Container">
+            <style>
+                div.d {
+                    width: 100%;
+                    height: 100%;
+                }
+            </style>
+            <div class="d">
+                <tm-responsive-table .data="${data}" .definition="${definition}" selectable></tm-responsive-table>        
+            </div>
+        </section>
+        <section title="Heading">
+            <style>
+                tm-table-header.a {
+                    border: solid lightgrey 1px;
+                }
+            </style>
+            <div>
+                <tm-table-header class="a" path="firstName" title="First Name" sort filter
+                    @filter-changed="${(e) => console.log('BBBB', e.detail)}"
+                    @sort-changed="${(e) => console.log('AAAAAA', e.detail)}"></tm-table-header>            
+            </div>
+        </section>
+
     </tm-examples>
 `, document.querySelector('body'));

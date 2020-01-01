@@ -1,5 +1,174 @@
 import { L as LitElement, c as css, h as html } from '../common/lit-element-54503d46.js';
 
+window.customElements.define('tm-table-header', class extends LitElement {
+  // noinspection JSUnusedGlobalSymbols
+  static get properties() {
+    return {
+      path: {
+        type: String
+      },
+      title: {
+        type: String
+      },
+      filter: {
+        type: Boolean
+      },
+      sort: {
+        type: Boolean
+      },
+      sortValue: {
+        type: String
+      },
+      filterValue: {
+        type: String
+      }
+    };
+  }
+
+  constructor() {
+    super();
+    this.path = undefined;
+    this.title = '';
+    this.filter = false;
+    this.sort = false;
+    this.sortValue = 'none';
+    this.filterValue = '';
+  }
+
+  static get styles() {
+    // language=CSS
+    return css`
+            :host {
+                display: inline-block;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+                padding: 4px;
+                --title-color: white;
+            }
+
+            div.main {
+                display: flex;
+                flex-direction: row;
+                justify-content: space-around;
+                width: 100%;
+                height: 100%;
+                box-sizing: border-box;
+            }
+
+            span.title, input.filter {
+                flex: 1;
+            }
+
+            div.sort {
+                height: 10px;
+                width: 10px;
+                margin-top: 5px;
+                margin-left: 10px;
+                box-sizing: border-box;
+                border-style: solid;
+                border-color: var(--title-color);
+                border-width: 0px 1px 1px 0px;
+                transform: rotate(45deg);
+                transition: border-width 150ms ease-in-out;
+            }
+
+            div.arrow-asc {
+                transform: rotate(225deg);
+            }
+
+            div.arrow-dsc {
+                transform: rotate(45deg);
+            }
+
+            div.arrow-none {
+                border: solid transparent 1px;
+            }
+        `;
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  render() {
+    const {
+      title,
+      filter,
+      sort,
+      sortValue,
+      filterValue,
+      path
+    } = this;
+    //console.log(`TM-TABLE-HEADING: render: path(${path}) sort(${sortValue}) filter(${filterValue})`);
+    return html`
+            <div class="main"  @click="${() => this.sortChanged()}">
+                ${filter === true ? html`
+                    <input class="filter"
+                            style="width:${sort === true ? 80 : 90}%"
+                            value="${filterValue}"
+                            placeholder="${title}" 
+                            @click="${e => e.stopPropagation()}"
+                            @keydown="${debounce(e => this.filterChanged(e), 500)}"/>
+                ` : html`
+                    <span class="title">${title}</span>
+                `}
+                ${sort === true ? html`
+                    <div class="sort arrow-${sortValue}"></div>
+                ` : html``}
+            </div>
+        `;
+  }
+
+  filterChanged(e) {
+    const {
+      path
+    } = this;
+    const value = e.path[0].value;
+    this.filterValue = value;
+    //console.log(`NEW FILTER: Path(${path}), Value(${value})`, this.filterValue);
+    this.dispatchEvent(new CustomEvent('filter-changed', {
+      detail: {
+        path: path,
+        value: this.filterValue
+      },
+      bubbles: true,
+      composed: true
+    }));
+  }
+
+  sortChanged() {
+    const {
+      sort
+    } = this;
+
+    if (sort) {
+      const {
+        path,
+        sortValue
+      } = this;
+      this.sortValue = sortValue === 'none' ? 'asc' : sortValue === 'asc' ? 'dsc' : 'none';
+      //console.log(`NEW SORT: Path(${path}), Value(${sortValue})`, this.sortValue);
+      this.dispatchEvent(new CustomEvent('sort-changed', {
+        detail: {
+          path: path,
+          value: this.sortValue
+        },
+        bubbles: true,
+        composed: true
+      }));
+    }
+  }
+
+});
+
+function debounce(func, delay) {
+  let timer;
+  return function () {
+    const context = this;
+    const args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(context, args), delay);
+  };
+}
+
 window.customElements.define('tm-responsive-table', class extends LitElement {
   // noinspection JSUnusedGlobalSymbols
   static get properties() {
@@ -46,28 +215,27 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
 
   firstUpdated(_changedProperties) {
     super.firstUpdated(_changedProperties);
-    const slot = this.shadowRoot.getElementById('slot');
-    const templates = Array.from(slot.assignedElements()).filter(element => element.tagName === 'TEMPLATE');
-    const template = templates.length > 0 ? templates[0] : document.createElement('template');
 
     if (this.src !== undefined && this.src.length > 0) {
-      fetch(this.src).then(data => data.json()).then(data => this.data = data).catch(error => console.error('There was an issue loading data', error));
+      this.getDataFromFile(this.src);
     }
-
-    this.addEventListener('tm-selection-changed', e => console.log('Selected Data', this.getSelected()));
   }
+
+  getDataFromFile(src) {
+    fetch(src).then(data => data.json()).then(data => this.data = data).catch(error => console.error('There was an issue loading data', error));
+  } // noinspection JSUnusedGlobalSymbols
+
 
   static get styles() {
     // language=CSS
     return css`
             :host {
                 display: inline-block;
-                /*noinspection CssUnresolvedCustomProperty*/
                 --row-odd-background: var(--tm-responsive-table-row-odd-background, #eee);
-                /*noinspection CssUnresolvedCustomProperty*/
                 --header-background: var(--tm-responsive-table-header-background, #333);
-                /*noinspection CssUnresolvedCustomProperty*/
+                --header-color: var(--tm-responsive-table-header-color, white);
                 --row-border: var(--tm-responsive-table-row-border, #ccc);
+                --max-device-width: var(--tm-responsive-table-max-device-width, 1024px);
             }
 
             article {
@@ -76,21 +244,20 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 justify-content: start;
                 height: 100%;
                 width: 100%;
+                max-width: 100%;
             }
 
             header {
+                width:100%;
                 flex: fit-content;
             }
 
             main {
+                width:100%;
                 display: inline-block;
                 flex: 1;
                 box-sizing: border-box;
-                overflow: scroll;
-            }
-
-            h2 {
-                color: gray;
+                overflow-y: scroll;
             }
 
             table {
@@ -99,7 +266,6 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             }
 
             tbody > tr:nth-of-type(odd) {
-                /*noinspection CssUnresolvedCustomProperty*/
                 background: var(--row-odd-background);
             }
             
@@ -108,32 +274,31 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             }
 
             th {
-                /*noinspection CssUnresolvedCustomProperty*/
                 background: var(--header-background);
-                color: white;
+                color: var(--header-color);
                 font-weight: bold;
             }
 
             td, th {
                 padding: 6px;
-                /*noinspection CssUnresolvedCustomProperty*/
                 border: 1px solid var(--row-border);
                 text-align: left;
             }
 
-            @media only screen and (max-width: 760px), (min-device-width: 768px) and (max-device-width: 1024px) {
+            @media only screen and (max-width: 760px), 
+                        (min-device-width: 768px) and (max-device-width: var(--max-device-width)) {
 
-                table, thead, tbody, th, td, tr {
+                thead, tbody, th, td, tr {
                     display: block;
                 }
 
                 tr {
-                    border: 1px solid #ccc;
+                    border: 1px solid var(--row-border);
                 }
 
                 td {
                     border: none;
-                    border-bottom: 1px solid #eee;
+                    border-bottom: 1px solid var(--row-odd-background);
                     position: relative;
                     padding-left: 50%;
                 }
@@ -161,36 +326,6 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     display: none;
                 }
             }
-
-            th.title {
-
-            }
-
-            .arrow-asc, .arrow-dsc {
-                clear: both;
-                float: right;
-                margin-top: 5px;
-                box-sizing: border-box;
-                height: 10px;
-                width: 10px;
-                border-style: solid;
-                border-color: white;
-                border-width: 0px 1px 1px 0px;
-                transform: rotate(45deg);
-                transition: border-width 150ms ease-in-out;
-            }
-
-            .arrow-asc {
-                transform: rotate(225deg);
-            }
-
-            .arrow-dsc {
-                transform: rotate(45deg);
-            }
-
-            .arrow-none {
-                display: none;
-            }
         `;
   } // noinspection JSUnusedGlobalSymbols
 
@@ -203,10 +338,10 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
       data,
       filter,
       sort
-    } = this;
+    } = this; //console.log(`TM-RESPONSIVE-TABLE: render: filter, sort`, filter, sort);
+
     return html`
-            <slot id="slot"></slot>
-            
+
             <style>
                 @media only screen and (max-width: 760px), (min-device-width: 768px) and (max-device-width: 1024px) {
                     ${definition.map((def, index) => html`
@@ -225,7 +360,16 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                         <input type="checkbox" .checked="${Object.keys(selected).length > 0}"/>
                                     </th>
                                 ` : html``}
-                                ${definition.map(def => this.generateTitle(def))}
+                                
+                                ${definition.map(def => html`
+                                    <th class="title" width="${def.width}">
+                                        <tm-table-header class="a" path="${def.path}" title="${def.title}" sort filter
+                                            sortValue="${def.path === sort.path ? sort.direction : 'none'}"
+                                            filterValue="${def.path in filter ? filter[def.path] : ''}"
+                                            @filter-changed="${e => this.filterChanged(e.detail.path, e.detail.value)}"
+                                            @sort-changed="${e => this.sortChanged(e.detail.path, e.detail.value)}"></tm-table-header> 
+                                    </th>
+                                `)}
                             </tr>
                         </thead>
                     </table>
@@ -241,43 +385,18 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                             </tr>
                         </thead>
                         <tbody>
-                            ${data.filter(d => Object.keys(filter).length === 0 || Object.keys(filter).map(p => d[p].indexOf(filter[p]) > -1).filter(s => s === true).length === Object.keys(filter).length).sort((a, b) => sort.path === undefined ? 0 : (sort.direction === 'asc' ? 1 : -1) * a[sort.path].localeCompare(b[sort.path])).map(d => html`
+                            ${data.filter(d => applyFilter(d, filter)).sort((a, b) => applySort(a, b, sort)).map(d => html`
                                     <tr @click="${e => this.rowSelected(d)}" class="${d['uid'] in selected ? 'selected' : ''}">
                                         ${selectable ? html`
                                             <td><input type="checkbox" .checked="${d['uid'] in selected}"/></td>
                                         ` : html``}
-                                        ${definition.map(def => html`<td>${d[def.path]}</td>`)}
+                                        ${definition.map(def => html`<td class="data">${d[def.path]}</td>`)}
                                     </tr>
                                 `)}
                         </tbody>
                     </table>
                 </main>            
             </article>
-        `;
-  }
-
-  generateTitle(def) {
-    const {
-      sort,
-      filter
-    } = this;
-    return def.path === 'selected' ? html`
-            <th class="selected" width="${def.width}"><input type="checkbox" .checked="${this.isAnyDataSelected()}"/></th>
-        ` : html`
-            <th class="title" width="${def.width}" @click="${() => this.sortChanged(def.path, def.sort)}">
-                    ${def.filter ? html`
-                        <span class="label">${def.title}</span>
-                    ` : html`
-                        <input style="width:${def.sort === true ? 80 : 90}%" 
-                                value="${def.path in filter ? filter[def.path] : ''}"
-                                placeholder="${def.title}" 
-                                @click="${e => e.stopPropagation()}"
-                                @keydown="${debounce(e => this.filterChanged(def.path, e), 500)}"/>
-                    `}
-                    ${def.sort ? html`
-                        <div class="arrow-${def.path === sort.path ? sort.direction : 'none'}"></div>
-                    ` : html``}
-             </th>
         `;
   }
 
@@ -302,7 +421,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     }
 
     this.selected = newSelected;
-    this.dispatchEvent(new CustomEvent('tm-selection-changed'));
+    this.dispatchEvent(new CustomEvent('selection-changed'));
   }
 
   masterSelectSelected(e) {
@@ -320,18 +439,20 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
       this.selected = newSelected;
     }
 
-    this.dispatchEvent(new CustomEvent('tm-selection-changed'));
+    this.dispatchEvent(new CustomEvent('selection-changed'));
   }
 
-  isAnyDataSelected() {
-    return this.data.map(r => r.selected).filter(s => s).length > 0;
+  sortChanged(path, value) {
+    this.sort = value === 'none' ? {} : {
+      path: path,
+      direction: value
+    }; //console.log(`TM-RESPONSIVE-TABLE: NEW SORT: Path(${path}), Value(${value})`, this.sort);
   }
 
-  filterChanged(path, e) {
+  filterChanged(path, value) {
     const {
       filter
     } = this;
-    const value = e.path[0].value;
     const newFilter = { ...filter
     };
 
@@ -341,48 +462,19 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
       newFilter[path] = value;
     }
 
-    this.filter = newFilter;
-    console.log(`NEW FILTER: Path(${path}), Value(${value})`, this.filter);
-  }
-
-  sortChanged(path, active) {
-    if (!active) return;
-    const {
-      sort
-    } = this;
-
-    if (sort.path === undefined) {
-      this.sort = {
-        path: path,
-        direction: 'asc'
-      };
-    } else if (sort.path === path) {
-      if (sort.direction === 'asc') {
-        this.sort = {
-          path: path,
-          direction: 'dsc'
-        };
-      } else {
-        this.sort = {};
-      }
-    } else {
-      this.sort = {
-        path: path,
-        direction: 'asc'
-      };
-    }
-
-    console.log(`NEW SORT: Path(${path}), Active(${active})`, this.sort);
+    this.filter = newFilter; //console.log(`TM-RESPONSIVE-TABLE: NEW FILTER: Path(${path}), Value(${value})`, this.filter);
   }
 
 });
 
-function debounce(func, delay) {
-  let timer;
-  return function () {
-    const context = this;
-    const args = arguments;
-    clearTimeout(timer);
-    timer = setTimeout(() => func.apply(context, args), delay);
-  };
+function applySort(a, b, sort) {
+  const {
+    path,
+    direction
+  } = sort;
+  return path === undefined || direction === 'none' ? 0 : (direction === 'asc' ? 1 : -1) * a[path].localeCompare(b[path]);
+}
+
+function applyFilter(d, filter) {
+  return Object.keys(filter).length === 0 || Object.keys(filter).map(p => p in d && d[p].indexOf(filter[p]) > -1).filter(s => s === true).length === Object.keys(filter).length;
 }

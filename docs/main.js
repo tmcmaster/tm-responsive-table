@@ -90,7 +90,7 @@ render(html`
                 <tm-responsive-table .data="${data}" .definition="${definition}" selectable></tm-responsive-table>        
             </div>
         </section>
-        <section title="Heading">
+        <!--section title="Heading">
             <style>
                 tm-table-header.a {
                     border: solid lightgrey 1px;
@@ -101,7 +101,7 @@ render(html`
                     @filter-changed="${(e) => console.log('BBBB', e.detail)}"
                     @sort-changed="${(e) => console.log('AAAAAA', e.detail)}"></tm-table-header>            
             </div>
-        </section>
+        </section-->
 
     </tm-examples>
 `, document.querySelector('body'));

@@ -73,21 +73,26 @@ window.customElements.define('tm-table-data', class extends LitElement {
                 @keydown="${debounce((e) => this.valueChanged(e), 500)}"
                 @blur="${() => this.publishChange()}"/>
         ` : html `
-            <div @click="${(e) => this.startEditing(e)}">${data}</div>
+            <div @click="${(e) => this.dataSelected(e)}">${data}</div>
         `);
     }
 
-    startEditing(e) {
+    dataSelected(e) {
         //console.log('TM-TABLE-DATA - startEditing');
         e.stopPropagation();
-        this.editing = true;
-        setTimeout(() => {
-            const input = this.shadowRoot.getElementById('input');
-            if (input) {
-                input.focus();
-                input.setSelectionRange(0,input.value.length)
-            }
-        }, 200);
+        if (this.editable) {
+            this.editing = true;
+            setTimeout(() => {
+                const input = this.shadowRoot.getElementById('input');
+                if (input) {
+                    input.focus();
+                    input.setSelectionRange(0,input.value.length)
+                }
+            }, 200);
+        } else {
+            this.dispatchEvent(new CustomEvent('data-selected'));
+        }
+
     }
 
     valueChanged(e) {

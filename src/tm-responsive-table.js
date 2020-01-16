@@ -152,7 +152,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
 
     // noinspection JSUnusedGlobalSymbols
     render() {
-        const {selectable, selected, definition, data, filter, sort} = this;
+        const {selectable, selected, definition, data, filter, sort, uid} = this;
         //console.log(`TM-RESPONSIVE-TABLE: render: filter, sort`, filter, sort);
 
         return html`
@@ -206,16 +206,17 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                 .filter((d) => applyFilter(d, filter))
                                 .sort((a,b) => applySort(a,b,sort))
                                 .map(d => html`
-                                    <tr class="${(d['uid'] in selected ? 'selected' : '')}">
+                                    <tr class="${(d[uid] in selected ? 'selected' : '')}">
                                         ${(selectable ? html`
                                             <td @click="${(e) => this.rowSelected(d)}">
-                                                <input type="checkbox" .checked="${d['uid'] in selected}" />
+                                                <input type="checkbox" .checked="${d[uid] in selected}" />
                                             </td>
                                         ` : html``)}
                                         ${definition.map(def => html`
                                             <td class="data">
                                                 <tm-table-data data="${d[def.path]}" ?editable="${def.edit}"
-                                                               @value-changed="${(e) => this.publishChange(d.uid, def.path, e, d)}"></tm-table-data>
+                                                               @value-changed="${(e) => this.publishChange(d[uid], def.path, e, d)}"
+                                                               @data-selected="${(e) => this.rowSelected(d)}"></tm-table-data>
                                             </td>           
                                         `)}
                                     </tr>

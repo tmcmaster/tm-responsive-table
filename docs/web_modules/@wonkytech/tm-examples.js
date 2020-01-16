@@ -13495,36 +13495,6 @@ let passiveTouchGestures = false;
 let strictTemplatePolicy = false;
 
 /**
- * Setting to enable dom-module lookup from Polymer.Element.  By default,
- * templates must be defined in script using the `static get template()`
- * getter and the `html` tag function.  To enable legacy loading of templates
- * via dom-module, set this flag to true.
- */
-let allowTemplateFromDomModule = false;
-
-/**
- * Setting to skip processing style includes and re-writing urls in css styles.
- * Normally "included" styles are pulled into the element and all urls in styles
- * are re-written to be relative to the containing script url.
- * If no includes or relative urls are used in styles, these steps can be
- * skipped as an optimization.
- */
-let legacyOptimizations = false;
-
-/**
- * Setting to perform initial rendering synchronously when running under ShadyDOM.
- * This matches the behavior of Polymer 1.
- */
-let syncInitialRender = false;
-
-/**
- * Setting to cancel synthetic click events fired by older mobile browsers. Modern browsers
- * no longer fire synthetic click events, and the cancellation behavior can interfere
- * when programmatically clicking on elements.
- */
-let cancelSyntheticClickEvents = true;
-
-/**
 @license
 Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
 This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
@@ -13668,12 +13638,6 @@ class DomModule extends HTMLElement {
   register(id) {
     id = id || this.id;
     if (id) {
-      // Under strictTemplatePolicy, reject and null out any re-registered
-      // dom-module since it is ambiguous whether first-in or last-in is trusted
-      if (strictTemplatePolicy && findModule(id) !== undefined) {
-        setModule(id, null);
-        throw new Error(`strictTemplatePolicy: dom-module ${id} re-registered`);
-      }
       this.id = id;
       setModule(id, this);
       styleOutsideTemplateCheck(this);
@@ -19557,14 +19521,9 @@ const ElementMixin = dedupingMixin(base => {
     let template = null;
     // Under strictTemplatePolicy in 3.x+, dom-module lookup is only allowed
     // when opted-in via allowTemplateFromDomModule
-    if (is && (!strictTemplatePolicy || allowTemplateFromDomModule)) {
+    if (is && (!strictTemplatePolicy )) {
       template = /** @type {?HTMLTemplateElement} */ (
           DomModule.import(is, 'template'));
-      // Under strictTemplatePolicy, require any element with an `is`
-      // specified to have a dom-module
-      if (strictTemplatePolicy && !template) {
-        throw new Error(`strictTemplatePolicy: expecting dom-module or null template for ${is}`);
-      }
     }
     return template;
   }
@@ -19614,7 +19573,7 @@ const ElementMixin = dedupingMixin(base => {
         if (typeof template === 'string') {
           console.error('template getter must return HTMLTemplateElement');
           template = null;
-        } else if (!legacyOptimizations) {
+        } else {
           template = template.cloneNode(true);
         }
       }
@@ -19941,9 +19900,6 @@ const ElementMixin = dedupingMixin(base => {
             n.attachShadow({mode: 'open', shadyUpgradeFragment: dom});
             n.shadowRoot.appendChild(dom);
           }
-          if (syncInitialRender && window.ShadyDOM) {
-            window.ShadyDOM.flushInitial(n.shadowRoot);
-          }
           return n.shadowRoot;
         }
         return null;
@@ -20040,18 +19996,6 @@ const ElementMixin = dedupingMixin(base => {
      * @nocollapse
      */
     static _addTemplatePropertyEffect(templateInfo, prop, effect) {
-      // Warn if properties are used in template without being declared.
-      // Properties must be listed in `properties` to be included in
-      // `observedAttributes` since CE V1 reads that at registration time, and
-      // since we want to keep template parsing lazy, we can't automatically
-      // add undeclared properties used in templates to `observedAttributes`.
-      // The warning is only enabled in `legacyOptimizations` mode, since
-      // we don't want to spam existing users who might have adopted the
-      // shorthand when attribute deserialization is not important.
-      if (legacyOptimizations && !(prop in this._properties)) {
-        console.warn(`Property '${prop}' used in template but not declared in 'properties'; ` +
-          `attribute will not be observed.`);
-      }
       // TODO(https://github.com/google/closure-compiler/issues/3240):
       //     Change back to just super.methodCall()
       return polymerElementBase._addTemplatePropertyEffect.call(
@@ -20455,9 +20399,6 @@ function setupTeardownMouseCanceller(setup) {
 }
 
 function ignoreMouse(e) {
-  if (!cancelSyntheticClickEvents) {
-    return;
-  }
   if (!POINTERSTATE.mouse.mouseIgnoreJob) {
     setupTeardownMouseCanceller(true);
   }
@@ -20565,7 +20506,7 @@ function untrackDocument(stateObj) {
   stateObj.upfn = null;
 }
 
-if (cancelSyntheticClickEvents) {
+{
   // use a document-wide touchend listener to start the ghost-click prevention mechanism
   // Use passive event listeners, if supported, to not affect scrolling performance
   document.addEventListener('touchend', ignoreMouse, supportsPassive$1 ? {passive: true} : false);
@@ -22100,12 +22041,6 @@ function createNotifyHostPropEffect() {
  * @suppress {invalidCasts}
  */
 function templatize(template, owner, options) {
-  // Under strictTemplatePolicy, the templatized element must be owned
-  // by a (trusted) Polymer element, indicated by existence of _methodHost;
-  // e.g. for dom-if & dom-repeat in main document, _methodHost is null
-  if (strictTemplatePolicy && !findMethodHost(template)) {
-    throw new Error('strictTemplatePolicy: template owner not trusted');
-  }
   options = /** @type {!TemplatizeOptions} */(options || {});
   if (template.__templatizeOwner) {
     throw new Error('A <template> can only be templatized once');
@@ -26370,10 +26305,6 @@ function GenerateClassFromInfo(info, Base, behaviors) {
         generatedProto.__hasRegisterFinished = true;
         // ensure superclass is registered first.
         super._registered();
-        // copy properties onto the generated class lazily if we're optimizing,
-        if (legacyOptimizations) {
-          copyPropertiesToProto(generatedProto);
-        }
         // make sure legacy lifecycle is called on the *element*'s prototype
         // and not the generated class prototype; if the element has been
         // extended, these are *not* the same.
@@ -26512,7 +26443,7 @@ function GenerateClassFromInfo(info, Base, behaviors) {
   };
 
   // copy properties if we're not optimizing
-  if (!legacyOptimizations) {
+  {
     copyPropertiesToProto(PolymerGenerated.prototype);
   }
 
@@ -26788,21 +26719,10 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 */
 
-let elementsHidden = false;
-
 /**
  * @return {boolean} True if elements will be hidden globally
  */
 function hideElementsGlobally() {
-  if (legacyOptimizations && !useShadow) {
-    if (!elementsHidden) {
-      elementsHidden = true;
-      const style = document.createElement('style');
-      style.textContent = 'dom-bind,dom-if,dom-repeat{display:none;}';
-      document.head.appendChild(style);
-    }
-    return true;
-  }
   return false;
 }
 
@@ -26854,9 +26774,6 @@ class DomBind extends domBindBase {
 
   constructor() {
     super();
-    if (strictTemplatePolicy) {
-      throw new Error(`strictTemplatePolicy: dom-bind not allowed`);
-    }
     this.root = null;
     this.$ = null;
     this.__children = null;

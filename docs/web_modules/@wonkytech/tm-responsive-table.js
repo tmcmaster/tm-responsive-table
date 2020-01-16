@@ -175,6 +175,162 @@ function debounce(func, delay) {
   };
 }
 
+window.customElements.define('tm-table-data', class extends LitElement {
+  // noinspection JSUnusedGlobalSymbols
+  static get properties() {
+    return {
+      data: {
+        type: String
+      },
+      editable: {
+        type: Boolean
+      },
+      editing: {
+        type: Boolean
+      },
+      changed: {
+        type: Boolean
+      },
+      input: {
+        type: Object
+      }
+    };
+  }
+
+  constructor() {
+    super();
+    this.editable = false;
+    this.changed = false;
+    this.editing = false;
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  firstUpdated(_changedProperties) {
+    super.firstUpdated(_changedProperties);
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  updated(_changedProperties) {
+    super.updated(_changedProperties);
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  attributeChangedCallback(name, oldval, newval) {
+    console.log('TM-TABLE-DATA - attribute change: ', name, oldval, newval);
+    super.attributeChangedCallback(name, oldval, newval);
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  connectedCallback() {
+    super.connectedCallback();
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  static get styles() {
+    // language=CSS
+    return css`
+            :host {
+                width: 100%;
+                height: 100%;
+            }
+            input,div {
+                box-sizing: border-box;
+                width: 100%;
+                height: 100%;
+            }
+        `;
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  render() {
+    const {
+      data,
+      editable,
+      editing
+    } = this;
+    return editable && editing ? html`
+            <input id="input" value="${data}" 
+                @keyup="${e => this.keyPressed(e)}"
+                @keydown="${debounce$1(e => this.valueChanged(e), 500)}"
+                @blur="${() => this.publishChange()}"/>
+        ` : html`
+            <div @click="${e => this.dataSelected(e)}">${data}</div>
+        `;
+  }
+
+  dataSelected(e) {
+    //console.log('TM-TABLE-DATA - startEditing');
+    e.stopPropagation();
+
+    if (this.editable) {
+      this.editing = true;
+      setTimeout(() => {
+        const input = this.shadowRoot.getElementById('input');
+
+        if (input) {
+          input.focus();
+          input.setSelectionRange(0, input.value.length);
+        }
+      }, 200);
+    } else {
+      this.dispatchEvent(new CustomEvent('data-selected'));
+    }
+  }
+
+  valueChanged(e) {
+    //console.log('TM-TABLE-DATA - valueChanged');
+    if (e.key !== 'Escape' && e.key !== 'Enter') {
+      this.changed = true;
+      const input = this.shadowRoot.getElementById('input');
+
+      if (input) {
+        this.data = input.value;
+      }
+    }
+  }
+
+  keyPressed(e) {
+    //console.log('TM-TABLE-DATA - keyPressed', e.key);
+    const key = e.key;
+
+    if (key === 'Escape' || e.key === 'Enter') {
+      const input = this.shadowRoot.getElementById('input');
+
+      if (input) {
+        input.blur();
+      }
+    }
+  }
+
+  publishChange() {
+    //console.log('TM-TABLE-DATA - publishChange');
+    if (this.changed) {
+      this.dispatchEvent(new CustomEvent('value-changed', {
+        detail: this.data
+      }));
+    }
+
+    this.editing = false;
+    this.changed = false;
+  }
+
+});
+
+function debounce$1(func, delay) {
+  let timer;
+  return function () {
+    const context = this;
+    const args = arguments;
+    clearTimeout(timer);
+    timer = setTimeout(() => func.apply(context, args), delay);
+  };
+}
+
 window.customElements.define('tm-responsive-table', class extends LitElement {
   // noinspection JSUnusedGlobalSymbols
   static get properties() {
@@ -342,7 +498,8 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
       definition,
       data,
       filter,
-      sort
+      sort,
+      uid
     } = this; //console.log(`TM-RESPONSIVE-TABLE: render: filter, sort`, filter, sort);
 
     return html`
@@ -368,7 +525,9 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                 
                                 ${definition.map(def => html`
                                     <th class="title" width="${def.width}">
-                                        <tm-table-header class="a" path="${def.path}" title="${def.title}" sort filter
+                                        <tm-table-header class="a" path="${def.path}" title="${def.title}"  
+                                                        ?sort="${def.sort ? def.sort : false}" 
+                                                        ?filter="${def.filter ? def.filter : false}"
                                             sortValue="${def.path === sort.path ? sort.direction : 'none'}"
                                             filterValue="${def.path in filter ? filter[def.path] : ''}"
                                             @filter-changed="${e => this.filterChanged(e.detail.path, e.detail.value)}"
@@ -391,11 +550,19 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                         </thead>
                         <tbody>
                             ${data.filter(d => applyFilter(d, filter)).sort((a, b) => applySort(a, b, sort)).map(d => html`
-                                    <tr @click="${e => this.rowSelected(d)}" class="${d['uid'] in selected ? 'selected' : ''}">
+                                    <tr class="${d[uid] in selected ? 'selected' : ''}">
                                         ${selectable ? html`
-                                            <td><input type="checkbox" .checked="${d['uid'] in selected}"/></td>
+                                            <td @click="${e => this.rowSelected(d)}">
+                                                <input type="checkbox" .checked="${d[uid] in selected}" />
+                                            </td>
                                         ` : html``}
-                                        ${definition.map(def => html`<td class="data">${d[def.path]}</td>`)}
+                                        ${definition.map(def => html`
+                                            <td class="data">
+                                                <tm-table-data data="${d[def.path]}" ?editable="${def.edit}"
+                                                               @value-changed="${e => this.publishChange(d[uid], def.path, e, d)}"
+                                                               @data-selected="${e => this.rowSelected(d)}"></tm-table-data>
+                                            </td>           
+                                        `)}
                                     </tr>
                                 `)}
                         </tbody>
@@ -409,24 +576,34 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
     return Object.values(this.selected);
   }
 
+  publishChange(uid, path, e, d) {
+    console.log('publish change: ', uid, path, e.detail);
+    this.editing = undefined;
+    d[path] = e.detail; //this.requestUpdate('data', undefined);
+  }
+
   rowSelected(d) {
     const {
       uid,
-      selected
+      selected,
+      selectable
     } = this;
-    const rowId = d[uid]; // TODO: need to investigate duplication of data issues
 
-    const newSelected = { ...selected
-    };
+    if (selectable) {
+      const rowId = d[uid]; // TODO: need to investigate duplication of data issues
 
-    if (rowId in selected) {
-      delete newSelected[rowId];
-    } else {
-      newSelected[rowId] = d;
+      const newSelected = { ...selected
+      };
+
+      if (rowId in selected) {
+        delete newSelected[rowId];
+      } else {
+        newSelected[rowId] = d;
+      }
+
+      this.selected = newSelected;
+      this.dispatchEvent(new CustomEvent('selection-changed'));
     }
-
-    this.selected = newSelected;
-    this.dispatchEvent(new CustomEvent('selection-changed'));
   }
 
   masterSelectSelected(e) {

@@ -2,6 +2,7 @@ import {html} from 'lit-html';
 import {LitElement, css} from 'lit-element';
 
 import './tm-table-header.js';
+import './tm-table-data.js';
 
 window.customElements.define('tm-responsive-table', class extends LitElement {
 
@@ -177,7 +178,9 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                 
                                 ${definition.map(def => html`
                                     <th class="title" width="${def.width}">
-                                        <tm-table-header class="a" path="${def.path}" title="${def.title}" sort filter
+                                        <tm-table-header class="a" path="${def.path}" title="${def.title}"  
+                                                        ?sort="${(def.sort ? def.sort : false)}" 
+                                                        ?filter="${(def.filter ? def.filter : false)}"
                                             sortValue="${(def.path === sort.path ? sort.direction : 'none')}"
                                             filterValue="${(def.path in filter ? filter[def.path] : '')}"
                                             @filter-changed="${(e) => this.filterChanged(e.detail.path, e.detail.value)}"
@@ -203,11 +206,18 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                 .filter((d) => applyFilter(d, filter))
                                 .sort((a,b) => applySort(a,b,sort))
                                 .map(d => html`
-                                    <tr @click="${(e) => this.rowSelected(d)}" class="${(d['uid'] in selected ? 'selected' : '')}">
+                                    <tr class="${(d['uid'] in selected ? 'selected' : '')}">
                                         ${(selectable ? html`
-                                            <td><input type="checkbox" .checked="${d['uid'] in selected}"/></td>
+                                            <td @click="${(e) => this.rowSelected(d)}">
+                                                <input type="checkbox" .checked="${d['uid'] in selected}" />
+                                            </td>
                                         ` : html``)}
-                                        ${definition.map(def => html`<td class="data">${d[def.path]}</td>`)}
+                                        ${definition.map(def => html`
+                                            <td class="data">
+                                                <tm-table-data data="${d[def.path]}" ?editable="${def.edit}"
+                                                               @value-changed="${(e) => this.publishChange(d.uid, def.path, e, d)}"></tm-table-data>
+                                            </td>           
+                                        `)}
                                     </tr>
                                 `)}
                         </tbody>
@@ -221,18 +231,28 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         return Object.values(this.selected);
     }
 
+
+    publishChange(uid, path, e, d) {
+        console.log('publish change: ', uid, path, e.detail);
+        this.editing = undefined;
+        d[path] = e.detail;
+        //this.requestUpdate('data', undefined);
+    }
+
     rowSelected(d) {
-        const {uid, selected} = this;
-        const rowId = d[uid];
-        // TODO: need to investigate duplication of data issues
-        const newSelected = {...selected};
-        if (rowId in selected) {
-            delete newSelected[rowId];
-        } else {
-            newSelected[rowId] = d;
+        const {uid, selected, selectable} = this;
+        if (selectable) {
+            const rowId = d[uid];
+            // TODO: need to investigate duplication of data issues
+            const newSelected = {...selected};
+            if (rowId in selected) {
+                delete newSelected[rowId];
+            } else {
+                newSelected[rowId] = d;
+            }
+            this.selected = newSelected;
+            this.dispatchEvent(new CustomEvent('selection-changed'));
         }
-        this.selected = newSelected;
-        this.dispatchEvent(new CustomEvent('selection-changed'));
     }
 
     masterSelectSelected(e) {

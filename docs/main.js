@@ -9,7 +9,7 @@ let sites = {
 
 const fileDefinition = [
     {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
-    {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false},
+    {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false, edit: true},
     {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true,},
     {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true}
 ];
@@ -42,7 +42,7 @@ render(html`
                     height: 250px;
                 }
             </style>
-            <tm-responsive-table class="a" .data="${data}" .definition="${definition}" selectable></tm-responsive-table>
+            <tm-responsive-table class="a" .data="${data}" .definition="${definition}"></tm-responsive-table>
         </section>
         <section title="Data From File">
             <style>
@@ -54,7 +54,7 @@ render(html`
             <script>
                 const fileDefinition = [
                     {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
-                    {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false},
+                    {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false, edit: true},
                     {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true,},
                     {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true}
                 ];

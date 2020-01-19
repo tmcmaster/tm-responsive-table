@@ -48,7 +48,6 @@ render(html`
             <style>
                  tm-responsive-table.b {
                     width: 100%;
-                    height: 250px;
                 }
             </style>
             <script>

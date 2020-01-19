@@ -53,13 +53,15 @@ window.customElements.define('tm-table-data', class extends LitElement {
         // language=CSS
         return css`
             :host {
+                display: inline-block;
                 width: 100%;
                 height: 100%;
             }
-            input,div {
+            input, div {
                 box-sizing: border-box;
                 width: 100%;
                 height: 100%;
+                //min-height: 18px;
             }
         `;
     }
@@ -73,7 +75,7 @@ window.customElements.define('tm-table-data', class extends LitElement {
                 @keydown="${debounce((e) => this.valueChanged(e), 500)}"
                 @blur="${() => this.publishChange()}"/>
         ` : html `
-            <div @click="${(e) => this.dataSelected(e)}">${data}</div>
+            <div @click="${(e) => this.dataSelected(e)}">${(data.length === 0 ? '' : data)}</div>
         `);
     }
 

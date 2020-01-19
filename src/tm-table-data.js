@@ -34,7 +34,7 @@ window.customElements.define('tm-table-data', class extends LitElement {
 
     // noinspection JSUnusedGlobalSymbols
     attributeChangedCallback(name, oldval, newval) {
-        console.log('TM-TABLE-DATA - attribute change: ', name, oldval, newval);
+        //console.log('TM-TABLE-DATA - attribute change: ', name, oldval, newval);
         super.attributeChangedCallback(name, oldval, newval);
     }
 

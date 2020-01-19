@@ -242,9 +242,10 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
 
 
     publishChange(uid, path, e, d) {
-        console.log('publish change: ', uid, path, e.detail);
+        console.log('TM-RESPONSIVE-TABLE: publish change: ', uid, path, e.detail);
         this.editing = undefined;
         d[path] = e.detail;
+        this.dispatchEvent(new CustomEvent('value-changed', {detail: {uid: uid, path: path, value: d[path]}}));
         //this.requestUpdate('data', undefined);
     }
 

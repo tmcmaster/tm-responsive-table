@@ -59,6 +59,7 @@ render(html`
                 ];
             </script>
             <tm-responsive-table class="b" src="./data/test.json" .definition="${fileDefinition}" selectable
+                    @value-changed="${(e) => console.log('Value Changed', e)}"
                     @selection-changed="${(e) => console.log('Selection changed.', e.path[0].getSelected())}"></tm-responsive-table>
         </section>
         <section title="Fixed Container">

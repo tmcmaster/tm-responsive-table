@@ -1,6 +1,7 @@
 {
   "imports": {
     "@wonkytech/tm-examples": "./@wonkytech/tm-examples.js",
-    "@wonkytech/tm-responsive-table": "./@wonkytech/tm-responsive-table.js"
+    "@wonkytech/tm-responsive-table": "./@wonkytech/tm-responsive-table.js",
+    "@wonkytech/tm-script-loader": "./@wonkytech/tm-script-loader.js"
   }
 }

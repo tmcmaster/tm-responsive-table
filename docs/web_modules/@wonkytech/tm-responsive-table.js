@@ -216,7 +216,7 @@ window.customElements.define('tm-table-data', class extends LitElement {
 
 
   attributeChangedCallback(name, oldval, newval) {
-    console.log('TM-TABLE-DATA - attribute change: ', name, oldval, newval);
+    //console.log('TM-TABLE-DATA - attribute change: ', name, oldval, newval);
     super.attributeChangedCallback(name, oldval, newval);
   } // noinspection JSUnusedGlobalSymbols
 
@@ -235,13 +235,15 @@ window.customElements.define('tm-table-data', class extends LitElement {
     // language=CSS
     return css`
             :host {
+                display: inline-block;
                 width: 100%;
                 height: 100%;
             }
-            input,div {
+            input, div {
                 box-sizing: border-box;
                 width: 100%;
                 height: 100%;
+                //min-height: 18px;
             }
         `;
   } // noinspection JSUnusedGlobalSymbols
@@ -259,7 +261,7 @@ window.customElements.define('tm-table-data', class extends LitElement {
                 @keydown="${debounce$1(e => this.valueChanged(e), 500)}"
                 @blur="${() => this.publishChange()}"/>
         ` : html`
-            <div @click="${e => this.dataSelected(e)}">${data}</div>
+            <div @click="${e => this.dataSelected(e)}">${data.length === 0 ? '' : data}</div>
         `;
   }
 
@@ -398,6 +400,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 --header-color: var(--tm-responsive-table-header-color, white);
                 --row-border: var(--tm-responsive-table-row-border, #ccc);
                 --max-device-width: var(--tm-responsive-table-max-device-width, 1024px);
+                --row-height: var(--tm-responsive-table-row-height, 18px);
             }
 
             article {
@@ -445,8 +448,14 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 padding: 6px;
                 border: 1px solid var(--row-border);
                 text-align: left;
+                height: var(--row-height);
             }
 
+            thead.thin > tr > td {
+                height: 0px;
+                padding: 0px;
+            }
+            
             @media only screen and (max-width: 600px) {
 
                 thead, tbody, th, td, tr {
@@ -540,7 +549,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 </header>
                 <main>
                     <table id="table">
-                        <thead>
+                        <thead class="thin">
                             <tr>
                                 ${selectable ? html`
                                     <td class="selected" width="5%"></td>
@@ -558,7 +567,8 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                         ` : html``}
                                         ${definition.map(def => html`
                                             <td class="data">
-                                                <tm-table-data data="${d[def.path]}" ?editable="${def.edit}"
+                                                <tm-table-data data="${def.path in d ? d[def.path] : ''}" 
+                                                               ?editable="${def.edit}"
                                                                @value-changed="${e => this.publishChange(d[uid], def.path, e, d)}"
                                                                @data-selected="${e => this.rowSelected(d)}"></tm-table-data>
                                             </td>           
@@ -577,9 +587,16 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
   }
 
   publishChange(uid, path, e, d) {
-    console.log('publish change: ', uid, path, e.detail);
+    console.log('TM-RESPONSIVE-TABLE: publish change: ', uid, path, e.detail);
     this.editing = undefined;
-    d[path] = e.detail; //this.requestUpdate('data', undefined);
+    d[path] = e.detail;
+    this.dispatchEvent(new CustomEvent('value-changed', {
+      detail: {
+        uid: uid,
+        path: path,
+        value: d[path]
+      }
+    })); //this.requestUpdate('data', undefined);
   }
 
   rowSelected(d) {

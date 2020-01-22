@@ -14,6 +14,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             src: {type: String},
             definition: {type: Array},
             selectable: {type: Boolean},
+            noHeadings: {type: Boolean},
             filter: {type: Object},
             sort: {type: Object},
             selected: {type: Object}
@@ -27,6 +28,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         this.src = undefined;
         this.uid = 'uid';
         this.selectable = false;
+        this.noHeadings = false;
         this.filter = {};
         this.sort = {};
         this.selected = {};
@@ -49,6 +51,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
 
     // noinspection JSUnusedGlobalSymbols
     static get styles() {
+
         // language=CSS
         return css `
             :host {
@@ -159,7 +162,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
 
     // noinspection JSUnusedGlobalSymbols
     render() {
-        const {selectable, selected, definition, data, filter, sort, uid} = this;
+        const {selectable, selected, noHeadings, definition, data, filter, sort, uid} = this;
         //console.log(`TM-RESPONSIVE-TABLE: render: filter, sort`, filter, sort);
 
         return html`
@@ -173,31 +176,33 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             </style>
             
             <article>
-                <header>
-                    <table>
-                        <thead>
-                            <tr>
-                                ${(selectable ? html`
-                                    <th class="selected" width="5%" @click="${(e) => this.masterSelectSelected(e)}">
-                                        <input type="checkbox" .checked="${Object.keys(selected).length > 0}"/>
-                                    </th>
-                                ` : html``)}
-                                
-                                ${definition.map(def => html`
-                                    <th class="title" width="${def.width}">
-                                        <tm-table-header class="a" path="${def.path}" title="${def.title}"  
-                                                        ?sort="${(def.sort ? def.sort : false)}" 
-                                                        ?filter="${(def.filter ? def.filter : false)}"
-                                            sortValue="${(def.path === sort.path ? sort.direction : 'none')}"
-                                            filterValue="${(def.path in filter ? filter[def.path] : '')}"
-                                            @filter-changed="${(e) => this.filterChanged(e.detail.path, e.detail.value)}"
-                                            @sort-changed="${(e) => this.sortChanged(e.detail.path, e.detail.value)}"></tm-table-header> 
-                                    </th>
-                                `)}
-                            </tr>
-                        </thead>
-                    </table>
-                </header>
+                ${(noHeadings ? html`` : html`
+                    <header>
+                        <table>
+                            <thead>
+                                <tr>
+                                    ${(selectable ? html`
+                                        <th class="selected" width="5%" @click="${(e) => this.masterSelectSelected(e)}">
+                                            <input type="checkbox" .checked="${Object.keys(selected).length > 0}"/>
+                                        </th>
+                                    ` : html``)}
+                                    
+                                    ${definition.map(def => html`
+                                        <th class="title" width="${def.width}">
+                                            <tm-table-header class="a" path="${def.path}" title="${def.title}"  
+                                                            ?sort="${(def.sort ? def.sort : false)}" 
+                                                            ?filter="${(def.filter ? def.filter : false)}"
+                                                sortValue="${(def.path === sort.path ? sort.direction : 'none')}"
+                                                filterValue="${(def.path in filter ? filter[def.path] : '')}"
+                                                @filter-changed="${(e) => this.filterChanged(e.detail.path, e.detail.value)}"
+                                                @sort-changed="${(e) => this.sortChanged(e.detail.path, e.detail.value)}"></tm-table-header> 
+                                        </th>
+                                    `)}
+                                </tr>
+                            </thead>
+                        </table>
+                    </header>
+                `)}
                 <main>
                     <table id="table">
                         <thead class="thin">

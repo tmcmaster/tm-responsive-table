@@ -1,5 +1,7 @@
 import {html, render} from "./web_modules/lit-html.js";
 
+import {loadTheme} from './web_modules/@wonkytech/tm-script-loader.js';
+
 let sites = {
     'src': 'https://github.com/tmcmaster/tm-responsive-table',
     'pika': 'https://www.pika.dev/npm/@wonkytech/tm-responsive-table',
@@ -27,12 +29,18 @@ const data = Array(NUMBER_OF_TEST_ROWS).fill(0).map((n,i) => {
     return row;
 });
 
+loadTheme('blue');
+
 render(html`
     <style>
         body {
           padding: 0;
           margin: 0;
         } 
+        
+        html {
+            --tm-responsive-table-header-background: var(--default-primary-color);
+        }
     </style>
     <tm-examples heading="tm-responsive-table" .sites="${sites}">
         <section title="Generated Data">
@@ -89,6 +97,14 @@ render(html`
             <div class="d">
                 <tm-responsive-table .data="${data}" .definition="${definition}" selectable></tm-responsive-table>        
             </div>
+        </section>
+        <section title="No Column Headings">
+            <style>
+                tm-responsive-table {
+                    width: 100%;
+                }
+            </style>
+            <tm-responsive-table .data="${data}" .definition="${definition}" noHeadings></tm-responsive-table>        
         </section>
         <!--section title="Heading">
             <style>

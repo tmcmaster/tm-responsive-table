@@ -1,4 +1,5 @@
 import { d as directive, A as AttributePart, P as PropertyPart, q as query, p as property, c as css, a as customElement, e as eventOptions, h as html$1, L as LitElement, n as noChange, N as NodePart, t as templateFactory } from '../common/lit-element-54503d46.js';
+import { loadLink } from './tm-script-loader.js';
 
 /*! *****************************************************************************
 Copyright (c) Microsoft Corporation. All rights reserved.
@@ -434,6 +435,8 @@ const _focusableElementsString = ['a[href]',
                                   'select:not([disabled])',
                                   'textarea:not([disabled])',
                                   'button:not([disabled])',
+                                  'details',
+                                  'summary',
                                   'iframe',
                                   'object',
                                   'embed',
@@ -12929,6 +12932,8 @@ let TopAppBar = class TopAppBar extends TopAppBarBase {};
 TopAppBar.styles = style$k;
 TopAppBar = __decorate([customElement('mwc-top-app-bar')], TopAppBar);
 
+loadLink("https://fonts.googleapis.com/icon?family=Material+Icons");
+
 /**
 @license
 Copyright (c) 2017 The Polymer Project Authors. All rights reserved.
@@ -23105,7 +23110,9 @@ function processUnscopedStyle(style) {
   const text = style.textContent;
   if (!styleTextSet.has(text)) {
     styleTextSet.add(text);
-    const newStyle = style.cloneNode(true);
+    const newStyle = document.createElement('style');
+    newStyle.setAttribute('shady-unscoped', '');
+    newStyle.textContent = text;
     document.head.appendChild(newStyle);
   }
 }

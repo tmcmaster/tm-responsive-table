@@ -182,6 +182,9 @@ window.customElements.define('tm-table-data', class extends LitElement {
       data: {
         type: String
       },
+      type: {
+        type: String
+      },
       editable: {
         type: Boolean
       },
@@ -202,6 +205,7 @@ window.customElements.define('tm-table-data', class extends LitElement {
     this.editable = false;
     this.changed = false;
     this.editing = false;
+    this.type = 'text';
   } // noinspection JSUnusedGlobalSymbols
 
 
@@ -253,10 +257,11 @@ window.customElements.define('tm-table-data', class extends LitElement {
     const {
       data,
       editable,
-      editing
+      editing,
+      type
     } = this;
     return editable && editing ? html`
-            <input id="input" value="${data}" 
+            <input id="input" value="${data}" type="${type}"
                 @keyup="${e => this.keyPressed(e)}"
                 @keydown="${debounce$1(e => this.valueChanged(e), 500)}"
                 @blur="${() => this.publishChange()}"/>
@@ -276,7 +281,10 @@ window.customElements.define('tm-table-data', class extends LitElement {
 
         if (input) {
           input.focus();
-          input.setSelectionRange(0, input.value.length);
+
+          if (this.type === 'text') {
+            input.setSelectionRange(0, input.value.length);
+          }
         }
       }, 200);
     } else {
@@ -499,6 +507,10 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 main > table > thead {
                     display: none;
                 }
+
+                .filterOrSort-false {
+                    display: none;
+                }
             }
         `;
   } // noinspection JSUnusedGlobalSymbols
@@ -539,7 +551,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                     ` : html``}
                                     
                                     ${definition.map(def => html`
-                                        <th class="title" width="${def.width}">
+                                        <th class="title filterOrSort-${def.filter === true || def.sort === true}" width="${def.width}">
                                             <tm-table-header class="a" path="${def.path}" title="${def.title}"  
                                                             ?sort="${def.sort ? def.sort : false}" 
                                                             ?filter="${def.filter ? def.filter : false}"
@@ -575,6 +587,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                         ${definition.map(def => html`
                                             <td class="data">
                                                 <tm-table-data data="${def.path in d ? d[def.path] : ''}" 
+                                                               type="${def.type ? def.type : 'text'}"
                                                                ?editable="${def.edit}"
                                                                @value-changed="${e => this.publishChange(d[uid], def.path, e, d)}"
                                                                @data-selected="${e => this.rowSelected(d)}"></tm-table-data>

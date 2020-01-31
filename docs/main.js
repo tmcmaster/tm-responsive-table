@@ -12,8 +12,9 @@ let sites = {
 const fileDefinition = [
     {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
     {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false, edit: true},
-    {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true,},
-    {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true}
+    {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true},
+    {path: 'age', title: 'Age', width: '10%', sort: false, filter: false, type: 'number', edit: true},
+    {path: 'email', title: 'Email Address', width: '30%', sort: false, filter: true}
 ];
 
 const NUMBER_OF_TEST_ROWS = 50;

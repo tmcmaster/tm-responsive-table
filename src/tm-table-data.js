@@ -7,6 +7,7 @@ window.customElements.define('tm-table-data', class extends LitElement {
     static get properties() {
         return {
             data: {type: String},
+            type: {type: String},
             editable: {type: Boolean},
             editing: {type: Boolean},
             changed: {type: Boolean},
@@ -19,6 +20,7 @@ window.customElements.define('tm-table-data', class extends LitElement {
         this.editable = false;
         this.changed = false;
         this.editing = false;
+        this.type = 'text';
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -68,9 +70,9 @@ window.customElements.define('tm-table-data', class extends LitElement {
 
     // noinspection JSUnusedGlobalSymbols
     render() {
-        const {data, editable, editing} = this;
+        const {data, editable, editing, type} = this;
         return (editable && editing ? html`
-            <input id="input" value="${data}" 
+            <input id="input" value="${data}" type="${type}"
                 @keyup="${(e) => this.keyPressed(e)}"
                 @keydown="${debounce((e) => this.valueChanged(e), 500)}"
                 @blur="${() => this.publishChange()}"/>
@@ -88,7 +90,9 @@ window.customElements.define('tm-table-data', class extends LitElement {
                 const input = this.shadowRoot.getElementById('input');
                 if (input) {
                     input.focus();
-                    input.setSelectionRange(0,input.value.length)
+                    if (this.type === 'text') {
+                        input.setSelectionRange(0,input.value.length)
+                    }
                 }
             }, 200);
         } else {

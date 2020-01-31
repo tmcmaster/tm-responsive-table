@@ -156,6 +156,10 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 main > table > thead {
                     display: none;
                 }
+
+                .filterOrSort-false {
+                    display: none;
+                }
             }
         `;
     }
@@ -188,7 +192,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                     ` : html``)}
                                     
                                     ${definition.map(def => html`
-                                        <th class="title" width="${def.width}">
+                                        <th class="title filterOrSort-${(def.filter === true || def.sort === true)}" width="${def.width}">
                                             <tm-table-header class="a" path="${def.path}" title="${def.title}"  
                                                             ?sort="${(def.sort ? def.sort : false)}" 
                                                             ?filter="${(def.filter ? def.filter : false)}"
@@ -227,6 +231,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                         ${definition.map(def => html`
                                             <td class="data">
                                                 <tm-table-data data="${(def.path in d ? d[def.path] : '')}" 
+                                                               type="${(def.type ? def.type : 'text')}"
                                                                ?editable="${def.edit}"
                                                                @value-changed="${(e) => this.publishChange(d[uid], def.path, e, d)}"
                                                                @data-selected="${(e) => this.rowSelected(d)}"></tm-table-data>

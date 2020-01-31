@@ -5,7 +5,7 @@
     },
     "dependencies": {
         "@wonkytech/tm-examples": "~0.1",
-        "@wonkytech/tm-responsive-table": "^0.1.5",
+        "@wonkytech/tm-responsive-table": "~0.1",
         "@wonkytech/tm-script-loader": "~0.1"
     }
 }

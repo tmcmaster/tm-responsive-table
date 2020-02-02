@@ -10,10 +10,10 @@ let sites = {
 };
 
 const fileDefinition = [
-    {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
+    {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false, edit: true, default: 'user-00'},
     {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false, edit: true},
     {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true},
-    {path: 'age', title: 'Age', width: '10%', sort: false, filter: false, type: 'number', edit: true},
+    {path: 'age', title: 'Age', width: '10%', sort: false, filter: false, type: 'number', edit: true, default: 10},
     {path: 'email', title: 'Email Address', width: '30%', sort: false, filter: true}
 ];
 
@@ -61,14 +61,16 @@ render(html`
             </style>
             <script>
                 const fileDefinition = [
-                    {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false},
+                    {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false, edit: true},
                     {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false, edit: true},
                     {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true,},
                     {path: 'email', title: 'Email Address', width: '40%', sort: false, filter: true}
                 ];
             </script>
-            <tm-responsive-table class="b" src="./data/test.json" .definition="${fileDefinition}" selectable
-                    @value-changed="${(e) => console.log('Value Changed', e)}"
+            <tm-responsive-table class="b" src="./data/test.json" .definition="${fileDefinition}" selectable editable
+                    @added="${(e) => console.log('Record was added: ', e.detail)}"
+                    @deleted="${(e) => console.log('Records were deleted: ', e.detail)}"
+                    @value-changed="${(e) => console.log('Value Changed', e.detail)}"
                     @selection-changed="${(e) => console.log('Selection changed.', e.path[0].getSelected())}"></tm-responsive-table>
         </section>
         <section title="Fixed Container">

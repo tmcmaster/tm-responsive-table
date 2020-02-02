@@ -15,6 +15,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             definition: {type: Array},
             selectable: {type: Boolean},
             noHeadings: {type: Boolean},
+            editable: {type: Boolean},
             filter: {type: Object},
             sort: {type: Object},
             selected: {type: Object}
@@ -29,6 +30,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         this.uid = 'uid';
         this.selectable = false;
         this.noHeadings = false;
+        this.editable = false;
         this.filter = {};
         this.sort = {};
         this.selected = {};
@@ -116,6 +118,22 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                 height: 0px;
                 padding: 0px;
             }
+
+            heading {
+                width: 100%;
+                display: flex;
+                flex-direction: row;
+                justify-content: space-between;
+                margin-bottom: 5px;
+            }
+
+            heading > button {
+                //border: solid lightgrey 1px;
+            }
+            
+            button, input {
+                border: solid lightgrey 1px;
+            }
             
             @media only screen and (max-width: 600px) {
 
@@ -166,7 +184,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
 
     // noinspection JSUnusedGlobalSymbols
     render() {
-        const {selectable, selected, noHeadings, definition, data, filter, sort, uid} = this;
+        const {selectable, selected, noHeadings, editable, definition, data, filter, sort, uid} = this;
         //console.log(`TM-RESPONSIVE-TABLE: render: filter, sort`, filter, sort);
 
         return html`
@@ -178,7 +196,17 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                     `)}
                 }
             </style>
-            
+            ${editable ? html`
+                <heading>
+                    <div>
+                        <button @click="${(e) => this._addNewRecord()}">ADD</button>    
+                        ${definition.filter(def => def.path === uid).map(def => html`
+                            <input id="newUID" placeholder="${def.title}"/>
+                        `)}                
+                    </div>
+                    <button @click="${(e) => this._deleteSelectedRecord()}">DELETE</button>
+                </heading>
+            ` : html``}
             <article>
                 ${(noHeadings ? html`` : html`
                     <header>
@@ -246,10 +274,42 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
         `;
     }
 
+    _addNewRecord() {
+        console.log('TM-RESPONSIVE-TABLE - addNewRecord');
+        const newRecord = {};
+        this.definition.forEach((def) => newRecord[def.path] = (def.default ? def.default : ''));
+        const inputNewUID = this.shadowRoot.getElementById('newUID');
+        if (inputNewUID) {
+            const newUID = inputNewUID.value;
+            if (newUID.length > 0) {
+                const duplicates = this.data.filter(d => d[this.uid] === newUID);
+                if (duplicates.length === 0) {
+                    newRecord[this.uid] = inputNewUID.value;
+                    this.data = [...this.data, newRecord];
+                    inputNewUID.value = '';
+                    this.dispatchEvent(new CustomEvent('added', {detail: newRecord}));
+                } else {
+                    console.log('Cannot create record with existing UID: ' + newUID);
+                }
+            } else {
+                console.log('Can not add new record without a given UID');
+            }
+        }
+    }
+
+    _deleteSelectedRecord() {
+        console.log('TM-RESPONSIVE-TABLE - deleteSelectedRecord: ', this.getSelected());
+        const selectedRows = this.getSelected();
+        //this.data = this.data.filter(r => !selectedRows.includes(r));
+        this.data = this.data.filter(r => !(r[this.uid] in this.selected));
+        const deletedUIDs = Object.keys(this.selected);
+        this.selected = {};
+        this.dispatchEvent(new CustomEvent('deleted', {detail: deletedUIDs}))
+    }
+
     getSelected() {
         return Object.values(this.selected);
     }
-
 
     publishChange(uid, path, e, d) {
         console.log('TM-RESPONSIVE-TABLE: publish change: ', uid, path, e.detail);

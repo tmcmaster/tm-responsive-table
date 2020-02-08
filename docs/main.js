@@ -13,7 +13,7 @@ const fileDefinition = [
     {path: 'uid', title: 'UID', width: '10%', sort: false, filter: false, edit: true, default: 'user-00'},
     {path: 'firstName', title: 'First Name', width: '20%', sort: true, filter: false, edit: true},
     {path: 'lastName', title: 'Last Name', width: '20%', sort: true, filter: true},
-    {path: 'age', title: 'Age', width: '10%', sort: false, filter: false, type: 'number', edit: true, default: 10},
+    {path: 'age', title: 'Age', width: '10%', sort: false, filter: false, type: 'slider', min:1, max: 5, edit: true, default: 10},
     {path: 'email', title: 'Email Address', width: '30%', sort: false, filter: true}
 ];
 

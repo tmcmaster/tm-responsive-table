@@ -36,7 +36,8 @@
     },
     "dependencies": {
         "lit-element": "^2.0.1",
-        "lit-html": "^1.0.0"
+        "lit-html": "^1.0.0",
+        "@wonkytech/polymer-elements": "~0.0"
     },
     "devDependencies": {
         "@pika/pack": "^0.5.0",

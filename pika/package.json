@@ -4,6 +4,9 @@
         "build": "npm update && npm run web"
     },
     "dependencies": {
+        "lit-element": "^2.0.1",
+        "lit-html": "^1.0.0",
+        "@wonkytech/polymer-elements": "~0.0",
         "@wonkytech/tm-examples": "~0.1",
         "@wonkytech/tm-responsive-table": "~0.1",
         "@wonkytech/tm-script-loader": "~0.1"

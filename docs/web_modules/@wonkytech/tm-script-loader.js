@@ -201,18 +201,36 @@ function loadTheme(name) {
 
 function waitForFirebase() {
   return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => {
-      reject('Firebase took too long.');
-    }, 10000);
-
-    if (firebase) {
-      clearTimeout(timeout);
-      resolve(firebase);
+    if (window.firebase && window.firebase.auth) {
+      resolve(window.firebase);
     } else {
-      document.addEventListener('firebase-ready', () => {
-        clearTimeout(timeout);
-        resolve(firebase);
-      });
+      let listener = undefined;
+      let timeout = setTimeout(() => {
+        if (listener) {
+          document.removeEventListener(`firebase-ready`, listener);
+          listener = undefined;
+          timeout = undefined;
+        }
+
+        if (window.firebase && window.firebase.auth) {
+          resolve(window.firebase);
+        } else {
+          reject('Firebase took too long.');
+        }
+      }, 10000);
+
+      listener = () => {
+        if (timeout) {
+          clearTimeout(timeout);
+          timeout = undefined;
+        }
+
+        document.removeEventListener(`firebase-ready`, listener);
+        listener = undefined;
+        resolve(window.firebase);
+      };
+
+      document.addEventListener('firebase-ready', listener);
     }
   });
 }

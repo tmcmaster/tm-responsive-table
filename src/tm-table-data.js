@@ -8,6 +8,8 @@ window.customElements.define('tm-table-data', class extends LitElement {
         return {
             data: {type: String},
             type: {type: String},
+            min: {type: Number},
+            max: {type: Number},
             editable: {type: Boolean},
             editing: {type: Boolean},
             changed: {type: Boolean},
@@ -21,6 +23,8 @@ window.customElements.define('tm-table-data', class extends LitElement {
         this.changed = false;
         this.editing = false;
         this.type = 'text';
+        this.min = 1;
+        this.max = 10;
     }
 
     // noinspection JSUnusedGlobalSymbols
@@ -65,11 +69,38 @@ window.customElements.define('tm-table-data', class extends LitElement {
                 height: 100%;
                 //min-height: 18px;
             }
+            div.slider {
+                display: inline-block;
+                height: 15px;
+                width: 100%;
+                overflow: hidden;
+            }
+            paper-slider {
+                height: 15px;
+                width: 100%;
+            }
         `;
     }
 
     // noinspection JSUnusedGlobalSymbols
     render() {
+        const {data, editable, editing, type, min, max} = this;
+        const action = (editable ? (type === 'slider' ? 'edit-slider' : (editing ? 'edit-text' : 'text')) : 'text');
+        return (action === 'edit-slider' ? html`
+             <div class="slider">
+                 <paper-slider value="${data}" min="${min}" max="${max}" step="1" snaps></paper-slider>
+             </div>
+        ` : (action === 'edit-text' ? html`
+             <input id="input" value="${data}" type="${type}" min="${min}" max="${max}"
+                    @keyup="${e => this.keyPressed(e)}"
+                    @keydown="${debounce(e => this.valueChanged(e), 500)}"
+                    @blur="${() => this.publishChange()}"/>
+        ` : html`
+             <div @click="${e => this.dataSelected(e)}">${data.length === 0 ? '' : data}</div>
+        `));
+    }
+    // noinspection JSUnusedGlobalSymbols
+    renderHold() {
         const {data, editable, editing, type} = this;
         return (editable && editing ? html`
             <input id="input" value="${data}" type="${type}"

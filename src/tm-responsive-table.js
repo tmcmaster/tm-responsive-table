@@ -260,6 +260,8 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                             <td class="data">
                                                 <tm-table-data data="${(def.path in d ? d[def.path] : '')}" 
                                                                type="${(def.type ? def.type : 'text')}"
+                                                               min="${(def.min ? def.min : 1)}"
+                                                               max="${(def.max ? def.max : 10)}"
                                                                ?editable="${def.edit}"
                                                                @value-changed="${(e) => this.publishChange(d[uid], def.path, e, d)}"
                                                                @data-selected="${(e) => this.rowSelected(d)}"></tm-table-data>

@@ -186,6 +186,12 @@ window.customElements.define('tm-table-data', class extends LitElement {
       type: {
         type: String
       },
+      min: {
+        type: Number
+      },
+      max: {
+        type: Number
+      },
       editable: {
         type: Boolean
       },
@@ -207,6 +213,8 @@ window.customElements.define('tm-table-data', class extends LitElement {
     this.changed = false;
     this.editing = false;
     this.type = 'text';
+    this.min = 1;
+    this.max = 10;
   } // noinspection JSUnusedGlobalSymbols
 
 
@@ -250,11 +258,46 @@ window.customElements.define('tm-table-data', class extends LitElement {
                 height: 100%;
                 //min-height: 18px;
             }
+            div.slider {
+                display: inline-block;
+                height: 15px;
+                width: 100%;
+                overflow: hidden;
+            }
+            paper-slider {
+                height: 15px;
+                width: 100%;
+            }
         `;
   } // noinspection JSUnusedGlobalSymbols
 
 
   render() {
+    const {
+      data,
+      editable,
+      editing,
+      type,
+      min,
+      max
+    } = this;
+    const action = editable ? type === 'slider' ? 'edit-slider' : editing ? 'edit-text' : 'text' : 'text';
+    return action === 'edit-slider' ? html`
+             <div class="slider">
+                 <paper-slider value="${data}" min="${min}" max="${max}" step="1" snaps></paper-slider>
+             </div>
+        ` : action === 'edit-text' ? html`
+             <input id="input" value="${data}" type="${type}" min="${min}" max="${max}"
+                    @keyup="${e => this.keyPressed(e)}"
+                    @keydown="${debounce$1(e => this.valueChanged(e), 500)}"
+                    @blur="${() => this.publishChange()}"/>
+        ` : html`
+             <div @click="${e => this.dataSelected(e)}">${data.length === 0 ? '' : data}</div>
+        `;
+  } // noinspection JSUnusedGlobalSymbols
+
+
+  renderHold() {
     const {
       data,
       editable,
@@ -620,6 +663,8 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
                                             <td class="data">
                                                 <tm-table-data data="${def.path in d ? d[def.path] : ''}" 
                                                                type="${def.type ? def.type : 'text'}"
+                                                               min="${def.min ? def.min : 1}"
+                                                               max="${def.max ? def.max : 10}"
                                                                ?editable="${def.edit}"
                                                                @value-changed="${e => this.publishChange(d[uid], def.path, e, d)}"
                                                                @data-selected="${e => this.rowSelected(d)}"></tm-table-data>

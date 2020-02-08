@@ -88,7 +88,9 @@ window.customElements.define('tm-table-data', class extends LitElement {
         const action = (editable ? (type === 'slider' ? 'edit-slider' : (editing ? 'edit-text' : 'text')) : 'text');
         return (action === 'edit-slider' ? html`
              <div class="slider">
-                 <paper-slider value="${data}" min="${min}" max="${max}" step="1" snaps></paper-slider>
+                 <paper-slider id="input" value="${data}" min="${min}" max="${max}" step="1" snaps
+                    @value-change="${debounce(() => this.sliderChanged(), 500)}"
+                    @blur="${() => this.publishChange()}"></paper-slider>
              </div>
         ` : (action === 'edit-text' ? html`
              <input id="input" value="${data}" type="${type}" min="${min}" max="${max}"
@@ -132,6 +134,15 @@ window.customElements.define('tm-table-data', class extends LitElement {
 
     }
 
+    sliderChanged() {
+        //console.log('TM-TABLE-DATA - sliderChanged');
+        const input = this.shadowRoot.getElementById('input');
+        if (input) {
+            this.changed = true;
+            this.data = input.value;
+        }
+    }
+
     valueChanged(e) {
         //console.log('TM-TABLE-DATA - valueChanged');
         if (e.key !== 'Escape' && e.key !== 'Enter') {
@@ -157,6 +168,10 @@ window.customElements.define('tm-table-data', class extends LitElement {
     publishChange() {
         //console.log('TM-TABLE-DATA - publishChange');
         if (this.changed) {
+            const input = this.shadowRoot.getElementById('input');
+            if (input && this.data !== input.value) {
+                this.data = input.value;
+            }
             this.dispatchEvent(new CustomEvent('value-changed', {detail: this.data}));
         }
         this.editing = false;

@@ -62,12 +62,16 @@ window.customElements.define('tm-table-data', class extends LitElement {
                 display: inline-block;
                 width: 100%;
                 height: 100%;
+                padding: 0;
+                margin: 0;
             }
             input, div {
                 box-sizing: border-box;
                 width: 100%;
                 height: 100%;
                 //min-height: 18px;
+                padding: 0;
+                margin: 0;
             }
             div.slider {
                 display: inline-block;

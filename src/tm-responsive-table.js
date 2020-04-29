@@ -59,11 +59,12 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             :host {
                 display: inline-block;
                 --row-odd-background: var(--tm-responsive-table-row-odd-background, #eee);
-                --header-background: var(--tm-responsive-table-header-background, #333);
+                --header-background: var(--tm-responsive-table-header-background, #007cff);
                 --header-color: var(--tm-responsive-table-header-color, white);
                 --row-border: var(--tm-responsive-table-row-border, #ccc);
                 --max-device-width: var(--tm-responsive-table-max-device-width, 1024px);
                 --row-height: var(--tm-responsive-table-row-height, 18px);
+                --row-selected-color: var(--tm-responsive-row-selected-color, #98c5f5);
             }
 
             article {
@@ -98,7 +99,7 @@ window.customElements.define('tm-responsive-table', class extends LitElement {
             }
             
             tbody > tr.selected {
-                background: lightcyan;
+                background: var(--row-selected-color);
             }
 
             th {

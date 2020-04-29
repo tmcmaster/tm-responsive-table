@@ -39,7 +39,7 @@ window.customElements.define('tm-table-header', class extends LitElement {
                 width: 100%;
                 height: 100%;
                 box-sizing: border-box;
-                padding: 4px;
+                padding: 0px;
                 --title-color: white;
             }
 

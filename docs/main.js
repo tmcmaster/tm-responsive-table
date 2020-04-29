@@ -40,7 +40,7 @@ render(html`
         } 
         
         html {
-            --tm-responsive-table-header-background: var(--default-primary-color);
+            --tm-responsive-table-header-background: var(#007cff);
         }
     </style>
     <tm-examples heading="tm-responsive-table" .sites="${sites}">

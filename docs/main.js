@@ -1,5 +1,7 @@
 import {html, render} from "./web_modules/lit-html.js";
 
+import './web_modules/@wonkytech/tm-examples.js';
+
 import {loadTheme} from './web_modules/@wonkytech/tm-script-loader.js';
 
 let sites = {

@@ -1,35 +1,24 @@
 ---
-project:
-  name: "tm-responsive-table"
-  description: "Responsive table web component" # Escape double quotes in description
-  author: "Tim McMaster"
-  version: "0.1.0"
-
-origin:
-  repo_type: "original"
-  git_url: "https://github.com/tmcmaster/tm-responsive-table"
-  created: "2019-12-29"
-  modified: "2025-05-29"
-
-classification:
-  status: "unsorted"
-  engagement: "shelved"
-  priority: "low"
-  intent: []
-  domain: []
-  audience: "personal"
-
-stack:
-  languages: []
-  frameworks: []
-  databases: []
-  infrastructure: []
-  cloud: "none"
-
-capabilities:
-  features: []
-
-syntropy_id: ""
-collections: []
-tags: []
+Title: tm-responsive-table
+Description: Responsive table web component
+Author: Tim McMaster
+Created: '2019-12-29'
+Modified: '2025-05-29'
+Status: concept
+Engagement: back-burner
+Audience: personal
+Priority: sometime
+Version: 0.1.0
+Repo-Type: original
+Repo-Author: tmcmaster
+Repo-Name: tm-responsive-table
+Intent: []
+Domain: []
+Languages:
+- JavaScript
+Frameworks: []
+Databases: []
+Infrastructure: []
+Features: []
 ---
+
